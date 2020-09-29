@@ -3,8 +3,9 @@ let path = require('path');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 let webpackConfig = {
+    mode: "development",
     entry: {
-        areaChartWithZoom: './src/visualizations/area-chart-with-zoom.ts'
+        custom_column: './src/visualizations/custom_column.ts'
     },
     output: {
         filename: '[name].js',
@@ -15,9 +16,9 @@ let webpackConfig = {
     resolve: {
         extensions: ['.ts', '.js', '.scss', '.css']
     },
-    plugins: [
-        new UglifyJSPlugin()
-    ],
+    // plugins: [
+    //     new UglifyJSPlugin()
+    // ],
     module: {
         rules: [
             { test: /\.ts$/, loader: 'ts-loader' },
