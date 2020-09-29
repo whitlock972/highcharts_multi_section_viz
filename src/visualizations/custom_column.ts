@@ -167,6 +167,12 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "Subtitle"
         }
+        options["border"] =
+        {
+            section: "Labels",
+            type: "boolean",
+            label: "Draw border"
+        }
         options["decimalPrecision"] =
         {
             section: "Labels",
@@ -298,11 +304,12 @@ const vis: CustomColumnViz = {
             let newLabelElement = document.createElement('div')
             newLabelElement.setAttribute("id",className)
             newLabelElement.innerHTML = className
+            let borderStyle = config.border ? `2px solid ${config.borderBoxColor}` : 'none';
             styles += `#${className} {
                 width: ${width}px;
                 text-size: ${config.borderFontSize};
                 position: inherit;
-                border: 2px solid ${config.borderBoxColor};
+                border: ${borderStyle};
                 border-radius: 4px;
                 padding: 15px;
                 margin-left:${i==0?"35px":"10px"};
