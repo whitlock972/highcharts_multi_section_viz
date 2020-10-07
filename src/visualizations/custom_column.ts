@@ -24,7 +24,13 @@ chartOptions = {
         text: ''
     },
     xAxis: {
-        categories: []
+        categories: [],
+        labels: {
+            autoRotation: false,
+            style: {
+                fontSize: '0.5rem'
+            }
+        }
     },
     yAxis: {
         title: null,
@@ -142,11 +148,19 @@ const vis: CustomColumnViz = {
         {
             section: "Y-Axis",
             type: "string",
-            label: "RP",
+            label: "RP Measure",
             display: "select",
             values: measures,
         }
-        options["secondaryMeasure"] =
+        options["reflectionPoint2Measure"] =
+        {
+            section: "Y-Axis",
+            type: "string",
+            label: "Additional RP (Optional)",
+            display: "select",
+            values: measures,
+        }
+        options["reflectionPoint2Measure"] =
         {
             section: "Y-Axis",
             type: "string",
@@ -189,6 +203,20 @@ const vis: CustomColumnViz = {
             display: "color",
             default: "coral"
         }
+        options["series1LegendColor"] =
+        {
+            section: "Labels",
+            type: "array",
+            label: "RP 1 Legend Color",
+            display: "color"
+        }
+        options["series2LegendColor"] =
+        {
+            section: "Labels",
+            type: "array",
+            label: "RP 2 Legend Color",
+            display: "color"
+        }
         options["borderFontSize"] =
         {
             section: "Labels",
@@ -207,6 +235,11 @@ const vis: CustomColumnViz = {
 
         this.trigger('registerOptions', options) // register options with parent page to update visConfig
 
+        if (!config.domain) {
+            done();
+            return;
+        }
+
         chartOptions.title = config.title
         chartOptions.subtitle = config.subtitle
 
@@ -214,8 +247,11 @@ const vis: CustomColumnViz = {
         let baselineSeriesValues: Array<any> = [];
         let benchmarkSeriesValues: Array<any> = [];
         let reflectionPoint1SeriesValues: Array<any> = [];
+        let reflectionPoint2SeriesValues: Array<any> = [];
         let primaryLabelClasses: Array<string> = [];
         let orderedData = orderByDomain(data, config);
+
+        let showRP2:boolean = config.reflectionPoint2Measure && config.reflectionPoint2Measure.length > 0;
 
         orderedData.forEach(function (row, i) {        
             var baselineMeasureCell = row[config.baselineMeasure];
@@ -224,7 +260,8 @@ const vis: CustomColumnViz = {
             var firstCategoryCell = row[config.firstCategory];
             var domainCell = row[config.domain];
             var secondCategoryCell = row[config.secondCategory];
-            var color = lookupColor(domainCell.value); 
+            var color = showRP2 ? lookupSecondaryColor(domainCell.value) : lookupColor(domainCell.value); 
+            var secondRPcolor = lookupColor(domainCell.value);
             xCategories.push(
                 secondCategoryCell.value
             )
@@ -234,13 +271,22 @@ const vis: CustomColumnViz = {
             benchmarkSeriesValues.push(
                 [i, rounder(benchmarkMeasureCell.value,config.decimalPrecision)]
             )
+            if (showRP2) {
+                var reflectionPoint2Cell = row[config.reflectionPoint2Measure];
+                reflectionPoint2SeriesValues.push(
+                    { x: i, y: rounder(reflectionPoint2Cell.value,config.decimalPrecision)
+                        , color: secondRPcolor
+                        , className: secondCategoryCell.value.replace(/\s/g, '_')
+                    }
+                )
+            }
             reflectionPoint1SeriesValues.push(
                 { x: i, y: rounder(reflectionPoint1Cell.value,config.decimalPrecision)
                     , color: color
-                    , className: firstCategoryCell.value.replace(/\s/g, '')
+                    , className: firstCategoryCell.value.replace(/\s/g, '_')
                 }
             )
-            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, ''))
+            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'))
         });
 
         let baselineSeries : any = {};
@@ -267,8 +313,11 @@ const vis: CustomColumnViz = {
         benchmarkSeries.data = benchmarkSeriesValues ;
 
         let reflectionPoint1Series : any = {};
-        reflectionPoint1Series.name = 'Reflection Point'
+        reflectionPoint1Series.name = 
+            reflectionPoint2SeriesValues.length > 0 ? 'Reflection Point 1' : 'Reflection Point'; 
         reflectionPoint1Series.data = reflectionPoint1SeriesValues
+        reflectionPoint1Series.color = `${config.series1LegendColor}`
+
         reflectionPoint1Series.dataLabels = {
             enabled: true,
             inside: true,
@@ -278,10 +327,30 @@ const vis: CustomColumnViz = {
             }
         }
 
+        let reflectionPoint2Series : any = {};
+        if (reflectionPoint2SeriesValues.length > 0) {
+            reflectionPoint2Series.name = 'Reflection Point 2'
+            reflectionPoint2Series.data = reflectionPoint2SeriesValues
+            reflectionPoint2Series.color = `${config.series2LegendColor}`
+
+            reflectionPoint2Series.dataLabels = {
+                enabled: true,
+                inside: true,
+                verticalAlign: 'top',
+                style: {
+                    textOutline: 'none'
+                }
+            }
+        }
+       
+
         chartOptions = baseChartOptions
         chartOptions.xAxis.categories =  xCategories
-        chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries]
-
+        if (showRP2) {
+            chartOptions.series = [baselineSeries, reflectionPoint1Series, reflectionPoint2Series, benchmarkSeries]
+        } else {
+            chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries]
+        }
         var vizDiv = document.createElement('div');
         vizDiv.setAttribute('id','viz');
         element.appendChild(vizDiv);
@@ -303,10 +372,14 @@ const vis: CustomColumnViz = {
             
             let newLabelElement = document.createElement('div')
             newLabelElement.setAttribute("id",className)
-            newLabelElement.innerHTML = className
+            let domainName = getDomainNameFromPrimaryLabel(className,config,data).trim();
+            let labelValue = className.replace('_',' ').trim()
+            if (domainName != labelValue) { labelValue = labelValue.replace(domainName,'').trim() } 
+            newLabelElement.innerHTML = labelValue;
             let borderStyle = config.border ? `2px solid ${config.borderBoxColor}` : 'none';
             styles += `#${className} {
                 width: ${width}px;
+                text-align: center;
                 text-size: ${config.borderFontSize};
                 position: inherit;
                 border: ${borderStyle};
@@ -314,7 +387,7 @@ const vis: CustomColumnViz = {
                 padding: 15px;
                 margin-left:${i==0?"35px":"10px"};
                 margin-right:${i==numberOfClasses?"10px":""};
-                color:${getColorFromPrimaryLabel(className,config,data)};
+                color:${lookupColor(domainName)};
             }
             `
             labelDivs.push(newLabelElement)
@@ -361,18 +434,37 @@ function lookupColor(domainName: string): string {
     return color
 }
 
-function domainOrder(domainName: string): string {
+function lookupSecondaryColor(domainName: string):string {
+    let color: string ;
     switch (domainName.trim().toLowerCase()) {
-        case "mindset" : return '1'
-        case "inspiring" : return '2' 
-        case "thriving" : return '3'
-        case "outcome" : return '4'
-        default: return 'domainName'
+        case "mindset" : color = "#FFEEB2"
+        break;
+        case "inspiring" : color = "#BBDFFF" 
+        break;
+        case "thriving" : color = "#FECCBC"
+        break;
+        case "outcome" : color = "#A9DED7"
+        break;
+        case "outcomes" : color = "#A9DED7"
+        break;
+        default: color = "#FFFFFF"
     }
+return color;
 }
+
+
 
 function orderByDomain(dataArray:any, config:any): any {
     let newArray: any = dataArray
+    function domainOrder(domainName: string): string {
+        switch (domainName.trim().toLowerCase()) {
+            case "mindset" : return '1'
+            case "inspiring" : return '2' 
+            case "thriving" : return '3'
+            case "outcome" : return '4'
+            default: return 'domainName'
+        }
+    }
     newArray.sort(function(a: any, b: any){
         let cell:any = a[config.domain];
         if(domainOrder(cell.value) != domainOrder(b[config.domain].value))
@@ -389,16 +481,15 @@ function rounder(float:number, digits:number): number {
     return rounded
 }
 
-function getColorFromPrimaryLabel(className:string,config:any,data:any):string {
-    let color:string = ""
+function getDomainNameFromPrimaryLabel(className:string,config:any,data:any):string {
+    let domainName: string = '' 
     if(config.firstCategory == config.domain) {
-        color = lookupColor(className)
+        domainName = className
     }
     else {
-        let domainName = data[0][config.domain].value
-        color = lookupColor(domainName)
+        domainName = data[0][config.domain].value
     }
-    return color;
+    return domainName
 }
 
 looker.plugins.visualizations.add(vis);

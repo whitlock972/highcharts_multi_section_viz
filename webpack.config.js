@@ -1,7 +1,7 @@
 let path = require('path');
 
 let webpackConfig = {
-    mode: "development",
+    // mode: "development",
     entry: {
         custom_column: './src/visualizations/custom_column.ts'
     },
