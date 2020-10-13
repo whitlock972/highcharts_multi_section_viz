@@ -18,7 +18,7 @@ chartOptions = {
         enabled: false
     },
     title: {
-        text: 'Monthly Average Temperature'
+        text: 'Whole Person Model'
     },
     subtitle: {
         text: ''
@@ -35,7 +35,7 @@ chartOptions = {
     yAxis: {
         title: null,
         max: 80,
-        min: 30,
+        min: 20,
         gridLineWidth: 0
     },
     legend: {
@@ -59,13 +59,13 @@ interface CustomColumnViz extends VisualizationDefinition {
 }
 
 const vis: CustomColumnViz = {
-    id: 'custom-column', // id/label not required, but nice for testing and keeping manifests in sync
-    label: 'custom-column',
+    id: 'wpm_column_chart', // id/label not required, but nice for testing and keeping manifests in sync
+    label: 'whole-person-model',
     options: {
         title: {
             type: 'string',
             label: 'Title',
-            placeholder: 'Custom Column Chart'
+            placeholder: 'Whole Person Model'
         },
         subtitle: {
             type: 'string',
@@ -77,7 +77,6 @@ const vis: CustomColumnViz = {
  
 
         element.innerHTML = "Rendering ..."
-        // chart = Highcharts.stockChart(element, chartOptions);
     },
     // Render in response to the data or settings changing
     updateAsync(data, element, config, queryResponse, details, done) {
@@ -85,7 +84,6 @@ const vis: CustomColumnViz = {
         element.innerHTML = '';
         let totalWidth: number = document.body.clientWidth;
         const errors = handleErrors(this, queryResponse, {
-            // min_pivots: 0,
             max_pivots: 0,
             min_dimensions: 2,
             max_dimensions: 3,
@@ -110,23 +108,26 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "Domain",
             display: "select",
-            values: dimensions
+            values: dimensions,
+            order: 1
         }
         options["firstCategory"] =
         {
             section: "X-Axis",
             type: "string",
-            label: "First Category; Dimension or Domain",
+            label: "Column Group Label (Dimension or Domain)",
             display: "select",
-            values: dimensions
+            values: dimensions,
+            order: 3
         }
         options["secondCategory"] =
         {
             section: "X-Axis",
             type: "string",
-            label: "Second Category; Dimension or Sub-Dimension",
+            label: "Column Label (Dimension or Sub-Dimension)",
             display: "select",
             values: dimensions,
+            order: 2
         }
         options["benchmarkMeasure"] =
         {
@@ -160,32 +161,27 @@ const vis: CustomColumnViz = {
             display: "select",
             values: measures,
         }
-        options["reflectionPoint2Measure"] =
-        {
-            section: "Y-Axis",
-            type: "string",
-            label: "Additional RP (Optional)",
-            display: "select",
-            values: measures,
-        }
         options["title"] =
         {
             section: "Labels",
             type: "string",
             label: "Title",
-            placeholder: "Column Chart"
+            placeholder: "Whole Person Model",
+            order: 1
         }
         options["subtitle"] =
         {
             section: "Labels",
             type: "string",
-            label: "Subtitle"
+            label: "Subtitle",
+            order: 2
         }
         options["border"] =
         {
             section: "Labels",
             type: "boolean",
-            label: "Draw border"
+            label: "Column group label border",
+            order: 3
         }
         options["decimalPrecision"] =
         {
@@ -193,29 +189,33 @@ const vis: CustomColumnViz = {
             type: "number",
             display: "number",
             label: "Decimal Precision",
-            default: 0
+            default: 0,
+            order: 6
         }
         options["borderBoxColor"] =
         {
             section: "Labels",
             type: "array",
-            label: "Border Box Color",
+            label: "Label border color",
             display: "color",
-            default: "coral"
+            default: "coral",
+            order: 4
         }
         options["series1LegendColor"] =
         {
             section: "Labels",
             type: "array",
             label: "RP 1 Legend Color",
-            display: "color"
+            display: "color",
+            order: 7
         }
         options["series2LegendColor"] =
         {
             section: "Labels",
             type: "array",
             label: "RP 2 Legend Color",
-            display: "color"
+            display: "color",
+            order: 8
         }
         options["borderFontSize"] =
         {
@@ -223,7 +223,8 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "Font Size",
             placeholder: "16px",
-            default: "16px"
+            default: "16px",
+            order: 5
         }
         options["benchmarkIcon"] = {
             section: "Y-Axis",
