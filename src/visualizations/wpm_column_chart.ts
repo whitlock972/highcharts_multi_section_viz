@@ -111,23 +111,23 @@ const vis: CustomColumnViz = {
             values: dimensions,
             order: 1
         }
-        options["firstCategory"] =
-        {
-            section: "X-Axis",
-            type: "string",
-            label: "Column Group Label (Dimension or Domain)",
-            display: "select",
-            values: dimensions,
-            order: 3
-        }
         options["secondCategory"] =
         {
             section: "X-Axis",
             type: "string",
-            label: "Column Label (Dimension or Sub-Dimension)",
+            label: "Column Label",
             display: "select",
             values: dimensions,
             order: 2
+        }
+        options["firstCategory"] =
+        {
+            section: "X-Axis",
+            type: "string",
+            label: "Column Group Label",
+            display: "select",
+            values: dimensions,
+            order: 3
         }
         options["benchmarkMeasure"] =
         {
@@ -136,6 +136,14 @@ const vis: CustomColumnViz = {
             label: "Industry Benchmark",
             display: "select",
             values: measures,
+            order: 1
+        }
+        options["benchmarkIcon"] = {
+            section: "Y-Axis",
+            type: "string",
+            label: "Benchmark Point Icon URL",
+            default: 'https://freesvg.org/img/line-drawn.png',
+            order: 2
         }
         options["baselineMeasure"] =
         {
@@ -144,6 +152,7 @@ const vis: CustomColumnViz = {
             label: "Baseline",
             display: "select",
             values: measures,
+            order: 3
         }
         options["reflectionPoint1Measure"] =
         {
@@ -152,6 +161,7 @@ const vis: CustomColumnViz = {
             label: "RP Measure",
             display: "select",
             values: measures,
+            order: 4
         }
         options["reflectionPoint2Measure"] =
         {
@@ -160,6 +170,7 @@ const vis: CustomColumnViz = {
             label: "Additional RP (Optional)",
             display: "select",
             values: measures,
+            order: 5
         }
         options["title"] =
         {
@@ -180,8 +191,26 @@ const vis: CustomColumnViz = {
         {
             section: "Labels",
             type: "boolean",
-            label: "Column group label border",
+            label: "Show Column Group Label Border",
             order: 3
+        }
+        options["borderBoxColor"] =
+        {
+            section: "Labels",
+            type: "array",
+            label: "Column Group Label Border Color",
+            display: "color",
+            default: "coral",
+            order: 4
+        }
+        options["borderFontSize"] =
+        {
+            section: "Labels",
+            type: "string",
+            label: "Font Size",
+            placeholder: "16px",
+            default: "16px",
+            order: 5
         }
         options["decimalPrecision"] =
         {
@@ -191,15 +220,6 @@ const vis: CustomColumnViz = {
             label: "Decimal Precision",
             default: 0,
             order: 6
-        }
-        options["borderBoxColor"] =
-        {
-            section: "Labels",
-            type: "array",
-            label: "Label border color",
-            display: "color",
-            default: "coral",
-            order: 4
         }
         options["series1LegendColor"] =
         {
@@ -216,21 +236,6 @@ const vis: CustomColumnViz = {
             label: "RP 2 Legend Color",
             display: "color",
             order: 8
-        }
-        options["borderFontSize"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Font Size",
-            placeholder: "16px",
-            default: "16px",
-            order: 5
-        }
-        options["benchmarkIcon"] = {
-            section: "Y-Axis",
-            type: "string",
-            label: "Benchmark Point Icon URL",
-            default: 'https://freesvg.org/img/line-drawn.png'
         }
 
         this.trigger('registerOptions', options) // register options with parent page to update visConfig
