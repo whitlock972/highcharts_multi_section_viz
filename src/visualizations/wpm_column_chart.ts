@@ -1,6 +1,6 @@
 import { Looker, VisualizationDefinition, LookerChartUtils } from '../common/types';
 import { handleErrors, formatType } from '../common/utils';
-import './custom_column.css';
+import './wpm_column_chart.css';
 import * as Highcharts1 from 'highcharts';
 import { stockChart }  from 'highcharts/highstock';
 import { Chart, Options, charts, XAxisOptions, SeriesOptionsType, SeriesColumnOptions } from 'highcharts';

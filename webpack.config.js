@@ -1,9 +1,9 @@
 let path = require('path');
 
 let webpackConfig = {
-    // mode: "development",
+    mode: "production",
     entry: {
-        custom_column: './src/visualizations/custom_column.ts'
+        wpm_column_chart: './src/visualizations/wpm_column_chart.ts'
     },
     output: {
         filename: '[name].js',

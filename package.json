@@ -1,14 +1,14 @@
 {
-  "name": "custom_column_viz",
+  "name": "wpm_column_chart",
   "version": "1.0.0",
-  "description": "",
+  "description": "BetterUp Whole Person Model column chart",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "webpack-dev-server",
     "build": "webpack"
   },
-  "author": "",
+  "author": "BetterUp Inc.",
   "license": "ISC",
   "devDependencies": {
     "css-loader": "^3.6.0",
@@ -21,7 +21,7 @@
     "webpack": "^4.44.0",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0",
-    "highcharts": "latest"
+    "highcharts": "^8.2.0"
   },
   "dependencies": {}
 }
