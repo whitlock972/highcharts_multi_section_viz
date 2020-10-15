@@ -91,14 +91,16 @@ const vis: CustomColumnViz = {
             let value = field.name;
             return { [key]: value };
         });
+        let measures_blank = [...measures];
         let blank = "";
-        measures.push({[blank]: blank});
+        measures_blank.push({[blank]: blank});
+
         let dimensions = queryResponse.fields.dimension_like.map((field) => {
             let key = field.label;
             let value = field.name;
             return { [key]: value };
         });
-        dimensions.push({[blank]: blank});
+
         let options = this.options;
         options["domain"] =
         {
@@ -158,7 +160,7 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "RP Measure",
             display: "select",
-            values: measures,
+            values: measures_blank,
             order: 4
         };
         options["reflectionPoint2Measure"] =
@@ -167,7 +169,7 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "Additional RP (Optional)",
             display: "select",
-            values: measures,
+            values: measures_blank,
             order: 5
         };
         options["title"] =
@@ -268,11 +270,9 @@ const vis: CustomColumnViz = {
                 secondCategoryCell.value
             );
 
-            if (showRP1) {
+            if (showRP1 || showRP2) {
                 baselineSeriesValues.push(
-                    { x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision),
-                        color: "#98A4B7"
-                    }
+                    [ i, rounder(baselineMeasureCell.value,config.decimalPrecision)]
                 );
             }
             else {
@@ -311,6 +311,12 @@ const vis: CustomColumnViz = {
 
         let baselineSeries : any = {};
         baselineSeries.name = "Baseline";
+        if (showRP1 || showRP2) {
+            baselineSeries.color = "#98A4B7";
+        }
+        else {
+            baselineSeries.color = lookupColor(data[0][config.domain].value);
+        }
         baselineSeries.dataLabels = {
                             enabled: true,
                             inside: true,
