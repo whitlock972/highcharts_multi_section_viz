@@ -2,12 +2,11 @@ import { Looker, VisualizationDefinition } from '../common/types';
 import { handleErrors } from '../common/utils';
 import './wpm_column_chart.css';
 import * as Highcharts1 from 'highcharts';
-import { Chart } from 'highcharts';
 
 declare var looker: Looker;
 let chartOptions: any;
 
-let Highcharts:any = Highcharts1
+let Highcharts:any = Highcharts1;
 chartOptions = {
     chart: {
         type: 'column'
@@ -88,15 +87,18 @@ const vis: CustomColumnViz = {
         });
 
         let measures = queryResponse.fields.measure_like.map((field) => {
-            let key = field.label
-            let value = field.name
-            return { [key]: value }
+            let key = field.label;
+            let value = field.name;
+            return { [key]: value };
         });
+        let blank = "";
+        measures.push({[blank]: blank});
         let dimensions = queryResponse.fields.dimension_like.map((field) => {
-            let key = field.label
-            let value = field.name
-            return { [key]: value }
+            let key = field.label;
+            let value = field.name;
+            return { [key]: value };
         });
+        dimensions.push({[blank]: blank});
         let options = this.options;
         options["domain"] =
         {
