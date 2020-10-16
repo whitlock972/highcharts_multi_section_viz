@@ -338,11 +338,19 @@ const vis: CustomColumnViz = {
         benchmarkSeries.data = benchmarkSeriesValues ;
 
         let reflectionPoint1Series : any = {};
+
+        let rp1Colors = new Set(reflectionPoint1SeriesValues.map(x => x.color));
+
         if (showRP1) {
             reflectionPoint1Series.name = 
                 showRP2 ? 'Reflection Point 1' : 'Reflection Point'; 
             reflectionPoint1Series.data = reflectionPoint1SeriesValues;
-            reflectionPoint1Series.color = `${config.series1LegendColor}`;
+            if (rp1Colors.size == 1 && `${config.series1LegendColor}` == "") {
+                reflectionPoint1Series.color = rp1Colors.values().next().value;
+            }
+            else {
+                reflectionPoint1Series.color = `${config.series1LegendColor}`;
+            }
 
             reflectionPoint1Series.dataLabels = {
                 enabled: true,
