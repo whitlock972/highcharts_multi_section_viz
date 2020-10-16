@@ -363,10 +363,18 @@ const vis: CustomColumnViz = {
 
         }
         let reflectionPoint2Series : any = {};
+
+        let rp2Colors = new Set(reflectionPoint2SeriesValues.map(x => x.color));
+
         if (showRP1 && showRP2) {
             reflectionPoint2Series.name = 'Reflection Point 2';
             reflectionPoint2Series.data = reflectionPoint2SeriesValues;
-            reflectionPoint2Series.color = `${config.series2LegendColor}`;
+            if (rp1Colors.size == 1 && `${config.series2LegendColor}` == "") {
+                reflectionPoint2Series.color = rp2Colors.values().next().value;
+            }
+            else {
+                reflectionPoint2Series.color = `${config.series2LegendColor}`;
+            }
 
             reflectionPoint2Series.dataLabels = {
                 enabled: true,
