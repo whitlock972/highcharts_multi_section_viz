@@ -267,14 +267,16 @@ const vis: CustomColumnViz = {
 
             if (showRP1 || showRP2) {
                 baselineSeriesValues.push(
-                    [ i, rounder(baselineMeasureCell.value,config.decimalPrecision)]
+                    {x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
+                        , color: "#98a4b7"
+                        , dataLabels: {color: "#FFFFFF"}}
                 );
             }
             else {
                 baselineSeriesValues.push(
-                    { x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision),
-                        color: color,
-                        className: firstCategoryCell.value.replace(/\s/g, '_')
+                    { x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
+                        , color: color
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
                     }
                 );
             }
@@ -287,7 +289,7 @@ const vis: CustomColumnViz = {
                 reflectionPoint1SeriesValues.push(
                     { x: i, y: rounder(reflectionPoint1Cell.value,config.decimalPrecision)
                         , color: color
-                        , className: firstCategoryCell.value.replace(/\s/g, '_')
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
                     }
                 );
             }
@@ -296,7 +298,7 @@ const vis: CustomColumnViz = {
                 reflectionPoint2SeriesValues.push(
                     { x: i, y: rounder(reflectionPoint2Cell.value,config.decimalPrecision)
                         , color: secondRPcolor
-                        , className: secondCategoryCell.value.replace(/\s/g, '_')
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, false, showRP2)}
                     }
                 );
             }
@@ -351,7 +353,6 @@ const vis: CustomColumnViz = {
                 enabled: true,
                 inside: true,
                 verticalAlign: 'top',
-                color: '#3E4857',
                 style: {
                     textOutline: 'none'
                 }
@@ -376,7 +377,6 @@ const vis: CustomColumnViz = {
                 enabled: true,
                 inside: true,
                 verticalAlign: 'top',
-                color: '#3E4857',
                 style: {
                     textOutline: 'none'
                 }
@@ -494,6 +494,18 @@ function lookupSecondaryColor(domainName: string):string {
         default: color = "#FFFFFF"
     }
 return color;
+}
+
+function lookupLabelColor(domainName: string, isRP1: boolean, showRP2: boolean):string {
+    if (domainName.trim().toLowerCase() == "mindset") {
+        return "#3E4857";
+    }
+    else if (isRP1 && showRP2) {
+        return "#3E4857";
+    }
+    else {
+        return "#FFFFFF";
+    }
 }
 
 function rounder(float:number, digits:number): number {
