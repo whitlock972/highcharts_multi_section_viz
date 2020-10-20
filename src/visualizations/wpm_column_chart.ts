@@ -201,7 +201,7 @@ const vis: CustomColumnViz = {
         {
             section: "Labels",
             type: "string",
-            label: "Group Label Font Size",
+            label: "Label Font Size",
             placeholder: "12px",
             default: "12px",
             order: 4
@@ -438,7 +438,6 @@ const vis: CustomColumnViz = {
             labelDivs.push(newLabelElement);
         })
         
-
         var styleEl = document.createElement('style');
         styleEl.setAttribute('type',"text/css");
         styles +=  `
@@ -496,8 +495,6 @@ function lookupSecondaryColor(domainName: string):string {
     }
 return color;
 }
-
-
 
 function rounder(float:number, digits:number): number {
     let rounded = Math.round(float * 10**digits) / 10**digits;
