@@ -25,7 +25,7 @@ chartOptions = {
         labels: {
             autoRotation: false,
             style: {
-                fontSize: '0.5rem'
+                fontSize: '0.75rem'
             }
         }
     },
@@ -172,27 +172,12 @@ const vis: CustomColumnViz = {
             values: measures_blank,
             order: 5
         };
-        options["title"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Title",
-            placeholder: "Whole Person Model",
-            order: 1
-        };
-        options["subtitle"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Subtitle",
-            order: 2
-        };
         options["border"] =
         {
             section: "Labels",
             type: "boolean",
             label: "Show Column Group Label Border",
-            order: 3
+            order: 1
         };
         options["borderBoxColor"] =
         {
@@ -201,16 +186,25 @@ const vis: CustomColumnViz = {
             label: "Column Group Label Border Color",
             display: "color",
             default: "coral",
-            order: 4
+            order: 2
         };
-        options["borderFontSize"] =
+        options["groupLabelFontSize"] =
         {
             section: "Labels",
             type: "string",
-            label: "Font Size",
-            placeholder: "16px",
-            default: "16px",
-            order: 5
+            label: "Group Label Font Size",
+            placeholder: "20px",
+            default: "20px",
+            order: 3
+        };
+        options["labelFontSize"] =
+        {
+            section: "Labels",
+            type: "string",
+            label: "Group Label Font Size",
+            placeholder: "12px",
+            default: "12px",
+            order: 4
         };
         options["decimalPrecision"] =
         {
@@ -219,7 +213,7 @@ const vis: CustomColumnViz = {
             display: "number",
             label: "Decimal Precision",
             default: 0,
-            order: 6
+            order: 5
         };
         options["series1LegendColor"] =
         {
@@ -227,7 +221,7 @@ const vis: CustomColumnViz = {
             type: "array",
             label: "RP 1 Legend Color",
             display: "color",
-            order: 7
+            order: 6
         };
         options["series2LegendColor"] =
         {
@@ -235,7 +229,7 @@ const vis: CustomColumnViz = {
             type: "array",
             label: "RP 2 Legend Color",
             display: "color",
-            order: 8
+            order: 7
         };
 
         this.trigger('registerOptions', options); // register options with parent page to update visConfig
@@ -247,6 +241,7 @@ const vis: CustomColumnViz = {
 
         chartOptions.title = config.title;
         chartOptions.subtitle = config.subtitle;
+        chartOptions.xAxis.labels.style.fontSize = config.labelFontSize;
 
         let xCategories: Array<string> = [];
         let baselineSeriesValues: Array<any> = [];
@@ -356,6 +351,7 @@ const vis: CustomColumnViz = {
                 enabled: true,
                 inside: true,
                 verticalAlign: 'top',
+                color: '#3E4857',
                 style: {
                     textOutline: 'none'
                 }
@@ -380,6 +376,7 @@ const vis: CustomColumnViz = {
                 enabled: true,
                 inside: true,
                 verticalAlign: 'top',
+                color: '#3E4857',
                 style: {
                     textOutline: 'none'
                 }
@@ -428,7 +425,7 @@ const vis: CustomColumnViz = {
             styles += `#${className} {
                 width: ${width}px;
                 text-align: center;
-                text-size: ${config.borderFontSize};
+                font-size: ${config.groupLabelFontSize};
                 position: inherit;
                 border: ${borderStyle};
                 border-radius: 4px;
