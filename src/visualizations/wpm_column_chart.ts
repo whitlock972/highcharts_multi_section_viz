@@ -1,15 +1,12 @@
-import { Looker, VisualizationDefinition, LookerChartUtils } from '../common/types';
-import { handleErrors, formatType } from '../common/utils';
-import './custom_column.css';
+import { Looker, VisualizationDefinition } from '../common/types';
+import { handleErrors } from '../common/utils';
+import './wpm_column_chart.css';
 import * as Highcharts1 from 'highcharts';
-import { stockChart }  from 'highcharts/highstock';
-import { Chart, Options, charts, XAxisOptions, SeriesOptionsType, SeriesColumnOptions } from 'highcharts';
 
 declare var looker: Looker;
-let chart: Chart;
 let chartOptions: any;
 
-let Highcharts:any = Highcharts1
+let Highcharts:any = Highcharts1;
 chartOptions = {
     chart: {
         type: 'column'
@@ -18,7 +15,7 @@ chartOptions = {
         enabled: false
     },
     title: {
-        text: 'Monthly Average Temperature'
+        text: 'Whole Person Model'
     },
     subtitle: {
         text: ''
@@ -28,14 +25,14 @@ chartOptions = {
         labels: {
             autoRotation: false,
             style: {
-                fontSize: '0.5rem'
+                fontSize: '0.75rem'
             }
         }
     },
     yAxis: {
         title: null,
         max: 80,
-        min: 30,
+        min: 20,
         gridLineWidth: 0
     },
     legend: {
@@ -59,13 +56,13 @@ interface CustomColumnViz extends VisualizationDefinition {
 }
 
 const vis: CustomColumnViz = {
-    id: 'custom-column', // id/label not required, but nice for testing and keeping manifests in sync
-    label: 'custom-column',
+    id: 'wpm_column_chart', // id/label not required, but nice for testing and keeping manifests in sync
+    label: 'whole-person-model',
     options: {
         title: {
             type: 'string',
             label: 'Title',
-            placeholder: 'Custom Column Chart'
+            placeholder: 'Whole Person Model'
         },
         subtitle: {
             type: 'string',
@@ -74,10 +71,7 @@ const vis: CustomColumnViz = {
     },
     // Set up the initial state of the visualization
     create(element, config) {
- 
-
-        element.innerHTML = "Rendering ..."
-        // chart = Highcharts.stockChart(element, chartOptions);
+        element.innerHTML = "Rendering ...";
     },
     // Render in response to the data or settings changing
     updateAsync(data, element, config, queryResponse, details, done) {
@@ -85,7 +79,6 @@ const vis: CustomColumnViz = {
         element.innerHTML = '';
         let totalWidth: number = document.body.clientWidth;
         const errors = handleErrors(this, queryResponse, {
-            // min_pivots: 0,
             max_pivots: 0,
             min_dimensions: 2,
             max_dimensions: 3,
@@ -94,15 +87,20 @@ const vis: CustomColumnViz = {
         });
 
         let measures = queryResponse.fields.measure_like.map((field) => {
-            let key = field.label
-            let value = field.name
-            return { [key]: value }
-        })
+            let key = field.label;
+            let value = field.name;
+            return { [key]: value };
+        });
+        let measures_blank = [...measures];
+        let blank = "";
+        measures_blank.push({[blank]: blank});
+
         let dimensions = queryResponse.fields.dimension_like.map((field) => {
-            let key = field.label
-            let value = field.name
-            return { [key]: value }
-        })
+            let key = field.label;
+            let value = field.name;
+            return { [key]: value };
+        });
+
         let options = this.options;
         options["domain"] =
         {
@@ -110,24 +108,27 @@ const vis: CustomColumnViz = {
             type: "string",
             label: "Domain",
             display: "select",
-            values: dimensions
-        }
+            values: dimensions,
+            order: 1
+        };
         options["firstCategory"] =
         {
             section: "X-Axis",
             type: "string",
-            label: "First Category; Dimension or Domain",
+            label: "Column Group Label",
             display: "select",
-            values: dimensions
-        }
+            values: dimensions,
+            order: 2
+        };
         options["secondCategory"] =
         {
             section: "X-Axis",
             type: "string",
-            label: "Second Category; Dimension or Sub-Dimension",
+            label: "Column Label",
             display: "select",
             values: dimensions,
-        }
+            order: 3
+        };
         options["benchmarkMeasure"] =
         {
             section: "Y-Axis",
@@ -135,7 +136,15 @@ const vis: CustomColumnViz = {
             label: "Industry Benchmark",
             display: "select",
             values: measures,
-        }
+            order: 1
+        };
+        options["benchmarkIcon"] = {
+            section: "Y-Axis",
+            type: "string",
+            label: "Benchmark Point Icon URL",
+            default: 'https://freesvg.org/img/line-drawn.png',
+            order: 2
+        };
         options["baselineMeasure"] =
         {
             section: "Y-Axis",
@@ -143,104 +152,96 @@ const vis: CustomColumnViz = {
             label: "Baseline",
             display: "select",
             values: measures,
-        }
+            order: 3
+        };
         options["reflectionPoint1Measure"] =
         {
             section: "Y-Axis",
             type: "string",
             label: "RP Measure",
             display: "select",
-            values: measures,
-        }
+            values: measures_blank,
+            order: 4
+        };
         options["reflectionPoint2Measure"] =
         {
             section: "Y-Axis",
             type: "string",
             label: "Additional RP (Optional)",
             display: "select",
-            values: measures,
-        }
-        options["reflectionPoint2Measure"] =
-        {
-            section: "Y-Axis",
-            type: "string",
-            label: "Additional RP (Optional)",
-            display: "select",
-            values: measures,
-        }
-        options["title"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Title",
-            placeholder: "Column Chart"
-        }
-        options["subtitle"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Subtitle"
-        }
+            values: measures_blank,
+            order: 5
+        };
         options["border"] =
         {
             section: "Labels",
             type: "boolean",
-            label: "Draw border"
-        }
+            label: "Show Column Group Label Border",
+            order: 1
+        };
+        options["borderBoxColor"] =
+        {
+            section: "Labels",
+            type: "array",
+            label: "Column Group Label Border Color",
+            display: "color",
+            default: "coral",
+            order: 2
+        };
+        options["groupLabelFontSize"] =
+        {
+            section: "Labels",
+            type: "string",
+            label: "Group Label Font Size",
+            placeholder: "20px",
+            default: "20px",
+            order: 3
+        };
+        options["labelFontSize"] =
+        {
+            section: "Labels",
+            type: "string",
+            label: "Label Font Size",
+            placeholder: "12px",
+            default: "12px",
+            order: 4
+        };
         options["decimalPrecision"] =
         {
             section: "Labels",
             type: "number",
             display: "number",
             label: "Decimal Precision",
-            default: 0
-        }
-        options["borderBoxColor"] =
-        {
-            section: "Labels",
-            type: "array",
-            label: "Border Box Color",
-            display: "color",
-            default: "coral"
-        }
+            default: 0,
+            order: 5
+        };
         options["series1LegendColor"] =
         {
             section: "Labels",
             type: "array",
             label: "RP 1 Legend Color",
-            display: "color"
-        }
+            display: "color",
+            order: 6
+        };
         options["series2LegendColor"] =
         {
             section: "Labels",
             type: "array",
             label: "RP 2 Legend Color",
-            display: "color"
-        }
-        options["borderFontSize"] =
-        {
-            section: "Labels",
-            type: "string",
-            label: "Font Size",
-            placeholder: "16px",
-            default: "16px"
-        }
-        options["benchmarkIcon"] = {
-            section: "Y-Axis",
-            type: "string",
-            label: "Benchmark Point Icon URL",
-            default: 'https://freesvg.org/img/line-drawn.png'
-        }
+            display: "color",
+            order: 7
+        };
 
-        this.trigger('registerOptions', options) // register options with parent page to update visConfig
+        this.trigger('registerOptions', options); // register options with parent page to update visConfig
 
         if (!config.domain) {
             done();
             return;
         }
 
-        chartOptions.title = config.title
-        chartOptions.subtitle = config.subtitle
+        chartOptions.title = config.title;
+        chartOptions.subtitle = config.subtitle;
+        chartOptions.xAxis.labels.style.fontSize = config.labelFontSize;
 
         let xCategories: Array<string> = [];
         let baselineSeriesValues: Array<any> = [];
@@ -262,38 +263,57 @@ const vis: CustomColumnViz = {
             var secondRPcolor = lookupColor(domainCell.value);
             xCategories.push(
                 secondCategoryCell.value
-            )
-            baselineSeriesValues.push(
-                [ i, rounder(baselineMeasureCell.value,config.decimalPrecision)]
-            )
+            );
+
+            if (showRP1 || showRP2) {
+                baselineSeriesValues.push(
+                    {x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
+                        , color: "#98a4b7"
+                        , dataLabels: {color: "#FFFFFF"}}
+                );
+            }
+            else {
+                baselineSeriesValues.push(
+                    { x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
+                        , color: color
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
+                    }
+                );
+            }
+
             benchmarkSeriesValues.push(
                 [i, rounder(benchmarkMeasureCell.value,config.decimalPrecision)]
-            )
+            );
             if (showRP1) {
                 var reflectionPoint1Cell = row[config.reflectionPoint1Measure];
                 reflectionPoint1SeriesValues.push(
                     { x: i, y: rounder(reflectionPoint1Cell.value,config.decimalPrecision)
                         , color: color
-                        , className: firstCategoryCell.value.replace(/\s/g, '_')
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
                     }
-                )
+                );
             }
             if (showRP2) {
                 var reflectionPoint2Cell = row[config.reflectionPoint2Measure];
                 reflectionPoint2SeriesValues.push(
                     { x: i, y: rounder(reflectionPoint2Cell.value,config.decimalPrecision)
                         , color: secondRPcolor
-                        , className: secondCategoryCell.value.replace(/\s/g, '_')
+                        , dataLabels: {color: lookupLabelColor(domainCell.value, false, showRP2)}
                     }
-                )
+                );
             }
 
-            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'))
+            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'));
         });
 
         let baselineSeries : any = {};
-        baselineSeries.name = "Baseline"
-        baselineSeries.color = "#98A4B7"
+        baselineSeries.name = "Baseline";
+        if (showRP1 || showRP2) {
+            baselineSeries.color = "#98A4B7";
+        }
+        else {
+            baselineSeries.color = lookupColor(data[0][config.domain].value);
+        }
         baselineSeries.dataLabels = {
                             enabled: true,
                             inside: true,
@@ -301,25 +321,33 @@ const vis: CustomColumnViz = {
                             style: {
                                 textOutline: 'none'
                             }
-                        }
-        baselineSeries.data = baselineSeriesValues
+                        };
+        baselineSeries.data = baselineSeriesValues;
 
         let numberOfClasses: number = primaryLabelClasses.length;
         
         let benchmarkSeries : any = {};
-        benchmarkSeries.name = "Benchmark"
+        benchmarkSeries.name = "Benchmark";
         benchmarkSeries.type = "scatter";
         benchmarkSeries.marker = {width: 0.7*totalWidth/numberOfClasses,
               height: 25,
-              symbol: `url(${config.benchmarkIcon})`}
+              symbol: `url(${config.benchmarkIcon})`};
         benchmarkSeries.data = benchmarkSeriesValues ;
 
         let reflectionPoint1Series : any = {};
+
+        let rp1Colors = new Set(reflectionPoint1SeriesValues.map(x => x.color));
+
         if (showRP1) {
             reflectionPoint1Series.name = 
                 showRP2 ? 'Reflection Point 1' : 'Reflection Point'; 
-            reflectionPoint1Series.data = reflectionPoint1SeriesValues
-            reflectionPoint1Series.color = `${config.series1LegendColor}`
+            reflectionPoint1Series.data = reflectionPoint1SeriesValues;
+            if (rp1Colors.size == 1 && `${config.series1LegendColor}` == "") {
+                reflectionPoint1Series.color = rp1Colors.values().next().value;
+            }
+            else {
+                reflectionPoint1Series.color = `${config.series1LegendColor}`;
+            }
 
             reflectionPoint1Series.dataLabels = {
                 enabled: true,
@@ -328,14 +356,22 @@ const vis: CustomColumnViz = {
                 style: {
                     textOutline: 'none'
                 }
-            }
+            };
 
         }
         let reflectionPoint2Series : any = {};
+
+        let rp2Colors = new Set(reflectionPoint2SeriesValues.map(x => x.color));
+
         if (showRP1 && showRP2) {
-            reflectionPoint2Series.name = 'Reflection Point 2'
-            reflectionPoint2Series.data = reflectionPoint2SeriesValues
-            reflectionPoint2Series.color = `${config.series2LegendColor}`
+            reflectionPoint2Series.name = 'Reflection Point 2';
+            reflectionPoint2Series.data = reflectionPoint2SeriesValues;
+            if (rp1Colors.size == 1 && `${config.series2LegendColor}` == "") {
+                reflectionPoint2Series.color = rp2Colors.values().next().value;
+            }
+            else {
+                reflectionPoint2Series.color = `${config.series2LegendColor}`;
+            }
 
             reflectionPoint2Series.dataLabels = {
                 enabled: true,
@@ -344,18 +380,18 @@ const vis: CustomColumnViz = {
                 style: {
                     textOutline: 'none'
                 }
-            }
+            };
         }
        
 
-        chartOptions = baseChartOptions
-        chartOptions.xAxis.categories =  xCategories
+        chartOptions = baseChartOptions;
+        chartOptions.xAxis.categories =  xCategories;
         if (showRP2 && showRP1) {
-            chartOptions.series = [baselineSeries, reflectionPoint1Series, reflectionPoint2Series, benchmarkSeries]
+            chartOptions.series = [baselineSeries, reflectionPoint1Series, reflectionPoint2Series, benchmarkSeries];
         } else if (showRP1) {
-            chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries]
+            chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries];
         } else {
-            chartOptions.series = [baselineSeries, benchmarkSeries]    
+            chartOptions.series = [baselineSeries, benchmarkSeries];
         }
         var vizDiv = document.createElement('div');
         vizDiv.setAttribute('id','viz');
@@ -369,25 +405,27 @@ const vis: CustomColumnViz = {
 
         let uniquePrimaryLabelClasses: Array<string> = [...new Set(primaryLabelClasses)]; 
         let leftMargin: number = 100;
-        let widthIncrement = (totalWidth - leftMargin)/numberOfClasses    
+        let widthIncrement = (totalWidth - leftMargin)/numberOfClasses; 
         let styles: string = '';
 
         uniquePrimaryLabelClasses.forEach( (className:string, i: number) => {
-            let numberOfElements: number = primaryLabelClasses.filter(x => x==className).length
+            let numberOfElements: number = primaryLabelClasses.filter(x => x==className).length;
             let width = widthIncrement*numberOfElements;
-            width = width -10
+            width = width -10;
             
-            let newLabelElement = document.createElement('div')
-            newLabelElement.setAttribute("id",className)
+            let newLabelElement = document.createElement('div');
+            newLabelElement.setAttribute("id",className);
             let domainName = getDomainNameFromPrimaryLabel(className,config,data).trim();
-            let labelValue = className.replace('_',' ').trim()
-            if (domainName != labelValue) { labelValue = labelValue.replace(domainName,'').trim() } 
+            let labelValue = className.replace('_',' ').trim();
+            if (domainName != labelValue) {
+                labelValue = labelValue.replace(domainName,'').trim();
+            } 
             newLabelElement.innerHTML = labelValue;
             let borderStyle = config.border ? `2px solid ${config.borderBoxColor}` : 'none';
             styles += `#${className} {
                 width: ${width}px;
                 text-align: center;
-                text-size: ${config.borderFontSize};
+                font-size: ${config.groupLabelFontSize};
                 position: inherit;
                 border: ${borderStyle};
                 border-radius: 4px;
@@ -396,26 +434,25 @@ const vis: CustomColumnViz = {
                 margin-right:${i==numberOfClasses?"10px":""};
                 color:${lookupColor(domainName)};
             }
-            `
-            labelDivs.push(newLabelElement)
+            `;
+            labelDivs.push(newLabelElement);
         })
         
-
         var styleEl = document.createElement('style');
-        styleEl.setAttribute('type',"text/css")
+        styleEl.setAttribute('type',"text/css");
         styles +=  `
         @font-face {font-family: "Gilroy"; src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot"); src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot?#iefix") format("embedded-opentype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff2") format("woff2"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff") format("woff"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.ttf") format("truetype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.svg#Gilroy") format("svg"); }  
         div {
             font-family: "Gilroy"
         }
-        `
-        styleEl.innerHTML = styles 
+        `;
+        styleEl.innerHTML = styles;
         document.head.appendChild(styleEl);
 
         var customLabelsDiv: Element = document.createElement('div');
-        customLabelsDiv.setAttribute('class', 'customLabels')
-        customLabelsDiv.setAttribute('style',"display: flex")
-        labelDivs.forEach(x => customLabelsDiv.appendChild(x))
+        customLabelsDiv.setAttribute('class', 'customLabels');
+        customLabelsDiv.setAttribute('style',"display: flex");
+        labelDivs.forEach(x => customLabelsDiv.appendChild(x));
         element.appendChild(customLabelsDiv);
        
         done();
@@ -438,7 +475,7 @@ function lookupColor(domainName: string): string {
         break;
         default: color = "#2B333F"
     }
-    return color
+    return color;
 }
 
 function lookupSecondaryColor(domainName: string):string {
@@ -459,22 +496,32 @@ function lookupSecondaryColor(domainName: string):string {
 return color;
 }
 
-
+function lookupLabelColor(domainName: string, isRP1: boolean, showRP2: boolean):string {
+    if (domainName.trim().toLowerCase() == "mindset") {
+        return "#3E4857";
+    }
+    else if (isRP1 && showRP2) {
+        return "#3E4857";
+    }
+    else {
+        return "#FFFFFF";
+    }
+}
 
 function rounder(float:number, digits:number): number {
-    let rounded = Math.round(float * 10**digits) / 10**digits
-    return rounded
+    let rounded = Math.round(float * 10**digits) / 10**digits;
+    return rounded;
 }
 
 function getDomainNameFromPrimaryLabel(className:string,config:any,data:any):string {
-    let domainName: string = '' 
+    let domainName: string = '' ;
     if(config.firstCategory == config.domain) {
-        domainName = className
+        domainName = className;
     }
     else {
-        domainName = data[0][config.domain].value
+        domainName = data[0][config.domain].value;
     }
-    return domainName
+    return domainName;
 }
 
 looker.plugins.visualizations.add(vis);
