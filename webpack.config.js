@@ -3,7 +3,8 @@ let path = require('path');
 let webpackConfig = {
     // mode: "development",
     entry: {
-        custom_column: './src/visualizations/custom_column.ts'
+        custom_column: './src/visualizations/custom_column.ts',
+        custom_heatmap: './src/visualizations/custom_heatmap.ts'
     },
     output: {
         filename: '[name].js',
