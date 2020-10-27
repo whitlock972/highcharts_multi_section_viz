@@ -3,7 +3,7 @@ let path = require('path');
 let webpackConfig = {
     mode: "production",
     entry: {
-        custom_heatmap: './src/visualizations/custom_heatmap.ts',
+        wpm_heatmap_chart: './src/visualizations/wpm_heatmap_chart.ts',
         wpm_column_chart: './src/visualizations/wpm_column_chart.ts'
     },
     output: {

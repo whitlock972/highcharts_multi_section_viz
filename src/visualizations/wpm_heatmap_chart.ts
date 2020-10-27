@@ -5,7 +5,6 @@ import { handleErrors, formatType } from '../common/utils'
 
 var Highcharts = require('highcharts');  
 // Load module after Highcharts is loaded
-require('highcharts/modules/exporting')(Highcharts);  
 require('highcharts/modules/heatmap')(Highcharts);
 
 import { stockChart }  from 'highcharts/highstock'
@@ -19,7 +18,8 @@ chartOptions = {
         type: 'heatmap',
         marginTop: 40,
         marginBottom: 80,
-        plotBorderWidth: 1
+        plotBorderWidth: 0,
+        plotBorderColor: 'white'
       },
     credits: {
         enabled: false
@@ -33,21 +33,26 @@ chartOptions = {
         labels: {
             autoRotation: false,
             style: {
-                fontSize: '0.5rem'
+                fontSize: '8px'
             }
         }
     },
     yAxis: {
         title: null,
-        categories: []
+        categories: [],
+        labels: {
+            overflow: 'allow',
+            style: {
+                fontSize: '12px'
+            }
+        }
     },
     colorAxis: {
         min: 30,
         max: 70,
-        stops: [[0,'#263279'],[0.5,'#D9DDDE'],[1,'#670D23']],
-        
+        stops: [[0,'#263279'],[0.5,'#D9DDDE'],[1,'#670D23']],    
         reversed: false
-      },
+    },
     legend: {
         align: 'right',
         layout: 'vertical',
@@ -61,6 +66,16 @@ chartOptions = {
     plotOptions: {
         series: {
             pointPadding: 0
+        }
+    },
+    tooltip: {
+        formatter: function (tooltip) {
+            if (this.point.isNull) {
+                return 'Null';
+            }
+            return this.point.value
+            // If not null, use the default formatter
+            return tooltip.defaultFormatter.call(this, tooltip);
         }
     }
 }
@@ -83,9 +98,6 @@ const vis: CustomColumnViz = {
     async updateAsync(data, element, config, queryResponse, details, done) {
 
         element.innerHTML = ''
-
-        
-        let totalWidth: number = document.body.clientWidth
         const errors = handleErrors(this, queryResponse, {
             min_pivots: 1,
             max_pivots: 3,
@@ -105,7 +117,7 @@ const vis: CustomColumnViz = {
         let options = this.options
         options["domain"] =
         {
-            section: "X-Axis",
+            section: "Lower Labels",
             type: "string",
             label: "Domain",
             display: "select",
@@ -113,7 +125,7 @@ const vis: CustomColumnViz = {
         }
         options["firstCategory"] =
         {
-            section: "X-Axis",
+            section: "Values",
             type: "string",
             label: "First Category: a Dimension or Domain",
             display: "select",
@@ -121,58 +133,123 @@ const vis: CustomColumnViz = {
         }
         options["secondCategory"] =
         {
-            section: "X-Axis",
+            section: "Values",
             type: "string",
             label: "Second Category: a Dimension or Sub-Dimension",
             display: "select",
             values: dimensions,
         }
-        
+        options["showLowerLabels"] =
+        {
+            section: "Lower Labels",
+            type: "boolean",
+            label: "Show Lower Labels"
+        }
         options["border"] =
         {
-            section: "Labels",
+            section: "Lower Labels",
             type: "boolean",
             label: "Draw border"
         }
-        options["decimalPrecision"] =
+        options["lowerLabelFontColor"] =
         {
-            section: "Labels",
-            type: "number",
-            display: "number",
-            label: "Decimal Precision",
-            default: 0
+            section: "Lower Labels",
+            type: "array",
+            label: "Font Color",
+            display: "color"
         }
         options["borderBoxColor"] =
         {
-            section: "Labels",
+            section: "Lower Labels",
             type: "array",
             label: "Border Box Color",
-            display: "color",
-            default: "coral"
-        }
-        options["series1LegendColor"] =
-        {
-            section: "Labels",
-            type: "array",
-            label: "RP 1 Legend Color",
-            display: "color"
-        }
-        options["series2LegendColor"] =
-        {
-            section: "Labels",
-            type: "array",
-            label: "RP 2 Legend Color",
             display: "color"
         }
         options["borderFontSize"] =
         {
-            section: "Labels",
+            section: "Lower Labels",
             type: "string",
             label: "Font Size",
             placeholder: "16px",
             default: "16px"
         }
-      
+        options["decimalPrecision"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Decimal Precision",
+            default: 0
+        }
+        options["xAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "X Axis Font Size",
+            default: "8"
+        }
+        options["yAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Y Axis Font Size",
+            default: "12"
+        }
+        options["xAxisRotation"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "X Axis Rotation"
+        }
+        options["minColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Minimum Value Color",
+            display: "color",
+            default: "#263279"
+        }
+       
+        options["midColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Median Value Color",
+            display: "color",
+            default: "#D9DDDE"
+        }
+        options["maxColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Maximum Value Color",
+            display: "color",
+            default: "#670D23"
+        }
+        options["minValue"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Minimum Value",
+            default: 30
+        }
+        options["maxValue"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Maximum Value",
+            default: 70
+        }
+        options["showCellLabels"] = 
+        {
+            section: "Values",
+            type: "boolean",
+            label: "Show Cell Labels"
+        }
 
         this.trigger('registerOptions', options) // register options with parent page to update visConfig
 
@@ -187,16 +264,16 @@ const vis: CustomColumnViz = {
         let yCategories: Array<string> =  Object.keys(data[0][measuresName]).map(x =>getFinalSectionOfPipedString(x))
         let dataValues: any = Object.values(data[0][measuresName])
 
+        let maxYAxisStringLength: number = Math.max(...yCategories.map(x=>x.length))
+        let totalWidth: number = document.body.clientWidth
+        
         await data.forEach(function (row, i) {        
             var firstCategoryCell = row[config.firstCategory]
             var domainCell = row[config.domain]
             var secondCategoryCell = row[config.secondCategory]
             var secondRPcolor = lookupColor(domainCell.value)
-            
             var values = Object.values(data[i][measuresName])
             
-            
-
             values.map((x:any,j:number)=> {
             //     element.innerHTML = `i:${i},j:${j}, value: ${JSON.stringify(x)}` + ' ----+------' + JSON.stringify(values) + '--------' + JSON.stringify(data, null, '\n')
             // return;
@@ -204,31 +281,53 @@ const vis: CustomColumnViz = {
             })
             
             xCategories.push(
-                secondCategoryCell.value
+                secondCategoryCell.value 
             )
             primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'))
         })
 
-        // element.innerHTML = JSON.stringify(seriesData) + '--------' + measuresName + '-----' + JSON.stringify(queryResponse, null, '\n')
-        // return;
-
-      
-
+       
+        
         let numberOfClasses: number = primaryLabelClasses.length
         
 
         let pivotedSeries: any = {}
             pivotedSeries.data = seriesData 
-            pivotedSeries.borderWidth= 1
+            pivotedSeries.borderWidth= 0
+            pivotedSeries.borderColor= 'white'
+        
+        if (config.showCellLabels) {
             pivotedSeries.dataLabels= {
                 enabled: true,
-                color: '#000000'
+                style: {
+                    textOutline: 'none'
                 }
+            }
+        }   
+        
    
         chartOptions = baseChartOptions
         chartOptions.xAxis.categories =  xCategories
         chartOptions.yAxis.categories =  yCategories
-      
+        chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px` 
+        chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`
+        
+        if (config.xAxisRotation) {
+            chartOptions.xAxis.labels.rotation = -90
+        } else delete chartOptions.xAxis.labels.rotation
+
+        let colorAxis:any = {
+            min: config.minValue || 30,
+            max: config.maxValue || 70,  
+            stops: [
+                [0,`${config.minColor}` || '#263279'],
+                [0.5,`${config.midColor}` || '#D9DDDE'],
+                [1,`${config.maxColor}` || '#670D23']],
+            reversed: false
+          }
+        
+        chartOptions.colorAxis = colorAxis;
+
         chartOptions.series = [pivotedSeries]    
       
         var vizDiv = document.createElement('div')
@@ -242,14 +341,16 @@ const vis: CustomColumnViz = {
         let labelDivs: Array<Element> = [] 
 
         let uniquePrimaryLabelClasses: Array<string> = [...new Set(primaryLabelClasses)] 
-        let leftMargin: number = 100
-        let widthIncrement = (totalWidth - leftMargin)/numberOfClasses    
+        let leftMargin: number = maxYAxisStringLength * (config.yAxisFontSize/2) + 27
+        let rightMargin: number = 65
+        let widthIncrement = (totalWidth - leftMargin - rightMargin)/numberOfClasses    
         let styles: string = ''
+
+        chartOptions.xAxis.labels.width = `${widthIncrement}px`
 
         uniquePrimaryLabelClasses.forEach( (className:string, i: number) => {
             let numberOfElements: number = primaryLabelClasses.filter(x => x==className).length
-            let width = widthIncrement*numberOfElements
-            width = width -10
+            let width = widthIncrement*numberOfElements - 10
             
             let newLabelElement = document.createElement('div')
             newLabelElement.setAttribute("id",className)
@@ -261,14 +362,14 @@ const vis: CustomColumnViz = {
             styles += `#${className} {
                 width: ${width}px;
                 text-align: center;
-                text-size: ${config.borderFontSize};
+                font-size: ${config.borderFontSize};
                 position: inherit;
                 border: ${borderStyle};
                 border-radius: 4px;
                 padding: 15px;
-                margin-left:${i==0?"35px":"10px"};
-                margin-right:${i==numberOfClasses?"10px":""};
-                color:${lookupColor(domainName)};
+                margin-left:${i==0?`${leftMargin}px`:"10px"};
+                margin-right:${i+1==uniquePrimaryLabelClasses.length?`${rightMargin}px`:""};
+                color:${config.lowerLabelFontColor || lookupColor(domainName)};
             }
             `
             labelDivs.push(newLabelElement)
@@ -280,7 +381,7 @@ const vis: CustomColumnViz = {
         styles +=  `
         @font-face {font-family: "Gilroy"; src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot"); src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot?#iefix") format("embedded-opentype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff2") format("woff2"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff") format("woff"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.ttf") format("truetype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.svg#Gilroy") format("svg"); }  
         div {
-            font-family: "Gilroy"
+            font-family: "Gilroy", Arial, Helevatica, sans-serif;
         }
         `
         styleEl.innerHTML = styles 
@@ -290,7 +391,8 @@ const vis: CustomColumnViz = {
         customLabelsDiv.setAttribute('class', 'customLabels')
         customLabelsDiv.setAttribute('style',"display: flex")
         labelDivs.forEach(x => customLabelsDiv.appendChild(x))
-        element.appendChild(customLabelsDiv)
+        
+        if(config.showLowerLabels) {element.appendChild(customLabelsDiv)}
        
         done()
     }

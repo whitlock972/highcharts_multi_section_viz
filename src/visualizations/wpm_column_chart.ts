@@ -9,7 +9,8 @@ let chartOptions: any;
 let Highcharts:any = Highcharts1;
 chartOptions = {
     chart: {
-        type: 'column'
+        type: 'column',
+        animation: false
     },
     credits: {
         enabled: false
@@ -45,7 +46,8 @@ chartOptions = {
     ],
     plotOptions: {
         series: {
-            pointPadding: 0
+            pointPadding: 0,
+            animation: false
         }
     }
 };
