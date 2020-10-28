@@ -65,7 +65,15 @@ chartOptions = {
     ],
     plotOptions: {
         series: {
-            pointPadding: 0
+            states: {
+                hover: {
+                    enabled: false,
+                    halo: null
+                },
+                select: {
+                    halo: null
+                }
+            }
         }
     },
     tooltip: {
@@ -98,6 +106,8 @@ const vis: CustomColumnViz = {
     async updateAsync(data, element, config, queryResponse, details, done) {
 
         element.innerHTML = ''
+        if (config.maxWidth && config.maxWidth > 0) element.style.width = `${config.maxWidth}px`; 
+
         const errors = handleErrors(this, queryResponse, {
             min_pivots: 1,
             max_pivots: 3,
@@ -202,6 +212,13 @@ const vis: CustomColumnViz = {
             section: "Axes",
             type: "boolean",
             label: "X Axis Rotation"
+        }
+        options["maxWidth"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Maximum Width (in pixels)"
         }
         options["minColor"] =
         {
