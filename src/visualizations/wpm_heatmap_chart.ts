@@ -19,7 +19,8 @@ chartOptions = {
         marginTop: 40,
         marginBottom: 80,
         plotBorderWidth: 0,
-        plotBorderColor: 'white'
+        plotBorderColor: 'white',
+        height: '100%'
       },
     credits: {
         enabled: false
@@ -31,11 +32,13 @@ chartOptions = {
     xAxis: {
         categories: [],
         labels: {
+            location: 'top',
             autoRotation: false,
             style: {
                 fontSize: '8px'
             }
-        }
+        },
+        opposite: false
     },
     yAxis: {
         title: null,
@@ -106,8 +109,7 @@ const vis: CustomColumnViz = {
     async updateAsync(data, element, config, queryResponse, details, done) {
 
         element.innerHTML = ''
-        if (config.maxWidth && config.maxWidth > 0) element.style.width = `${config.maxWidth}px`; 
-
+      
         const errors = handleErrors(this, queryResponse, {
             min_pivots: 1,
             max_pivots: 3,
@@ -124,20 +126,30 @@ const vis: CustomColumnViz = {
             let value = field.name
             return { [key]: value }
         })
+
+        // These are the looker viz options. 
         let options = this.options
+
         options["domain"] =
         {
             section: "Lower Labels",
             type: "string",
-            label: "Domain",
+            label: "Domain or other dimension",
             display: "select",
             values: dimensions
+        }
+        options["maxHeight"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Height (as a % of width)"
         }
         options["firstCategory"] =
         {
             section: "Values",
             type: "string",
-            label: "First Category: a Dimension or Domain",
+            label: "X-Axis category dimension",
             display: "select",
             values: dimensions
         }
@@ -145,7 +157,7 @@ const vis: CustomColumnViz = {
         {
             section: "Values",
             type: "string",
-            label: "Second Category: a Dimension or Sub-Dimension",
+            label: "X-Axis label dimension",
             display: "select",
             values: dimensions,
         }
@@ -199,6 +211,18 @@ const vis: CustomColumnViz = {
             label: "X Axis Font Size",
             default: "8"
         }
+        options["reverseXY"] = 
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Reverse X and Y Axes"
+        }
+        options["xAxisOnTop"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Show X Axis on Top"
+        }
         options["yAxisFontSize"] =
         {
             section: "Axes",
@@ -219,6 +243,12 @@ const vis: CustomColumnViz = {
             type: "number",
             display: "number",
             label: "Maximum Width (in pixels)"
+        }
+        options["internalBorder"] =
+        {
+            section: "Colors",
+            type: "boolean",
+            label: "Border Between Cells"
         }
         options["minColor"] =
         {
@@ -294,7 +324,11 @@ const vis: CustomColumnViz = {
             values.map((x:any,j:number)=> {
             //     element.innerHTML = `i:${i},j:${j}, value: ${JSON.stringify(x)}` + ' ----+------' + JSON.stringify(values) + '--------' + JSON.stringify(data, null, '\n')
             // return;
-                seriesData.push([i,j,rounder(x.value,config.decimalPrecision)])
+                if (config.reverseXY) {
+                    seriesData.push([j,i,rounder(x.value,config.decimalPrecision)])        
+                } else {
+                    seriesData.push([i,j,rounder(x.value,config.decimalPrecision)])
+                }
             })
             
             xCategories.push(
@@ -310,7 +344,7 @@ const vis: CustomColumnViz = {
 
         let pivotedSeries: any = {}
             pivotedSeries.data = seriesData 
-            pivotedSeries.borderWidth= 0
+            pivotedSeries.borderWidth= config.internalBorder ? 1 : 0
             pivotedSeries.borderColor= 'white'
         
         if (config.showCellLabels) {
@@ -322,10 +356,22 @@ const vis: CustomColumnViz = {
             }
         }   
         
-   
+//    These are the Highcharts options (not the looker viz config options)
         chartOptions = baseChartOptions
-        chartOptions.xAxis.categories =  xCategories
-        chartOptions.yAxis.categories =  yCategories
+
+        if (config.maxWidth && config.maxWidth > 0) element.style.width = `${config.maxWidth}px`; 
+        if (config.maxHeight && config.maxHeight > 0) {
+            chartOptions.chart.height = `${config.maxHeight}%`
+        } 
+        chartOptions.xAxis.opposite = config.xAxisOnTop
+
+        if (config.reverseXY) {
+            chartOptions.xAxis.categories =  yCategories
+            chartOptions.yAxis.categories =  xCategories    
+        } else {
+            chartOptions.xAxis.categories =  xCategories
+            chartOptions.yAxis.categories =  yCategories    
+        }
         chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px` 
         chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`
         
@@ -409,7 +455,7 @@ const vis: CustomColumnViz = {
         customLabelsDiv.setAttribute('style',"display: flex")
         labelDivs.forEach(x => customLabelsDiv.appendChild(x))
         
-        if(config.showLowerLabels) {element.appendChild(customLabelsDiv)}
+        if(config.showLowerLabels && !config.reverseXY) {element.appendChild(customLabelsDiv)}
        
         done()
     }
