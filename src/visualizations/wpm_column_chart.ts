@@ -1,12 +1,11 @@
 import { Looker, VisualizationDefinition } from '../common/types';
-import { handleErrors } from '../common/utils';
+import { handleErrors, lookupColor, lookupSecondaryColor, rounder, getDomainNameFromPrimaryLabel } from '../common/utils';
 import './wpm_column_chart.css';
-import * as Highcharts1 from 'highcharts';
+import * as Highcharts from 'highcharts';
 
 declare var looker: Looker;
 let chartOptions: any;
 
-let Highcharts:any = Highcharts1;
 chartOptions = {
     chart: {
         type: 'column',
@@ -462,42 +461,6 @@ const vis: CustomColumnViz = {
     
 };
 
-function lookupColor(domainName: string): string {
-    let color: string ;
-    switch (domainName.trim().toLowerCase()) {
-        case "mindset" : color = "#FFD116"
-        break;
-        case "inspiring" : color = "#39A6FF" 
-        break;
-        case "thriving" : color = "#FF6A4C"
-        break;
-        case "outcome" : color = "#41B2A2"
-        break;
-        case "outcomes" : color = "#41B2A2"
-        break;
-        default: color = "#2B333F"
-    }
-    return color;
-}
-
-function lookupSecondaryColor(domainName: string):string {
-    let color: string ;
-    switch (domainName.trim().toLowerCase()) {
-        case "mindset" : color = "#FFEEB2"
-        break;
-        case "inspiring" : color = "#BBDFFF" 
-        break;
-        case "thriving" : color = "#FECCBC"
-        break;
-        case "outcome" : color = "#A9DED7"
-        break;
-        case "outcomes" : color = "#A9DED7"
-        break;
-        default: color = "#FFFFFF"
-    }
-return color;
-}
-
 function lookupLabelColor(domainName: string, isRP1: boolean, showRP2: boolean):string {
     if (domainName.trim().toLowerCase() == "mindset") {
         return "#3E4857";
@@ -508,22 +471,6 @@ function lookupLabelColor(domainName: string, isRP1: boolean, showRP2: boolean):
     else {
         return "#FFFFFF";
     }
-}
-
-function rounder(float:number, digits:number): number {
-    let rounded = Math.round(float * 10**digits) / 10**digits;
-    return rounded;
-}
-
-function getDomainNameFromPrimaryLabel(className:string,config:any,data:any):string {
-    let domainName: string = '' ;
-    if(config.firstCategory == config.domain) {
-        domainName = className;
-    }
-    else {
-        domainName = data[0][config.domain].value;
-    }
-    return domainName;
 }
 
 looker.plugins.visualizations.add(vis);
