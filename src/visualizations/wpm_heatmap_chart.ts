@@ -226,8 +226,12 @@ const vis: CustomColumnViz = {
             label: "Color Scheme",
             display: "select",
             values: [
+                { "Berlin": "Berlin" },
+                { "Cork": "Cork" },
                 { "Derek": "Derek" },
                 { "Roma": "Roma" },
+                { "Tofino": "Tofino" },
+                { "Vik": "Vik" },
                 { "Custom": "Custom" }
             ],
             default: "Derek"
@@ -368,6 +372,78 @@ const vis: CustomColumnViz = {
                 [13 * stopsize, '#3368B0'],
                 [14 * stopsize, '#274DA4'],
                 [1, '#1A3399']];
+            }
+            else if (config.colorScheme == 'Cork') {
+                colorAxis.stops = [[0, '#434C01'],
+                [1 * stopsize, '#406119'],
+                [2 * stopsize, '#3F7A33'],
+                [3 * stopsize, '#529754'],
+                [4 * stopsize, '#73AD79'],
+                [5 * stopsize, '#98C39B'],
+                [6 * stopsize, '#BBD8BF'],
+                [7 * stopsize, '#DFEBE1'],
+                [8 * stopsize, '#DDE5EB'],
+                [9 * stopsize, '#B6C6D8'],
+                [10 * stopsize, '#8CA7C3'],
+                [11 * stopsize, '#658AAD'],
+                [12 * stopsize, '#3F6C99'],
+                [13 * stopsize, '#2A4E80'],
+                [14 * stopsize, '#2A3366'],
+                [1, '#2C194C']];
+            }
+            else if (config.colorScheme == 'Tofino') {
+                colorAxis.stops = [[0, '#DAE59A'],
+                [1 * stopsize, '#A9CB80'],
+                [2 * stopsize, '#76AE66'],
+                [3 * stopsize, '#4A8C4B'],
+                [4 * stopsize, '#336C38'],
+                [5 * stopsize, '#244C27'],
+                [6 * stopsize, '#183219'],
+                [7 * stopsize, '#0E1B12'],
+                [8 * stopsize, '#0E141D'],
+                [9 * stopsize, '#19253D'],
+                [10 * stopsize, '#263B65'],
+                [11 * stopsize, '#395790'],
+                [12 * stopsize, '#5777B9'],
+                [13 * stopsize, '#8399D7'],
+                [14 * stopsize, '#B0B8EB'],
+                [1, '#DED8FF']];
+            }
+            else if (config.colorScheme == 'Berlin') {
+                colorAxis.stops = [[0, '#FFACAC'],
+                [1 * stopsize, '#DA8B84'],
+                [2 * stopsize, '#B86A5B'],
+                [3 * stopsize, '#964A35'],
+                [4 * stopsize, '#722B15'],
+                [5 * stopsize, '#501802'],
+                [6 * stopsize, '#371000'],
+                [7 * stopsize, '#210C01'],
+                [8 * stopsize, '#121214'],
+                [9 * stopsize, '#112632'],
+                [10 * stopsize, '#194155'],
+                [11 * stopsize, '#255F7B'],
+                [12 * stopsize, '#327FA5'],
+                [13 * stopsize, '#4C9DCE'],
+                [14 * stopsize, '#76ABEB'],
+                [1, '#9EB0FF']];
+            }
+            else if (config.colorScheme == 'Vik') {
+                colorAxis.stops = [[0, '#601200'],
+                [1 * stopsize, '#743100'],
+                [2 * stopsize, '#875001'],
+                [3 * stopsize, '#9F711B'],
+                [4 * stopsize, '#B39148'],
+                [5 * stopsize, '#C7AD78'],
+                [6 * stopsize, '#DCCBA7'],
+                [7 * stopsize, '#ECE6D8'],
+                [8 * stopsize, '#D9E6EC'],
+                [9 * stopsize, '#A5C9D9'],
+                [10 * stopsize, '#70A7C3'],
+                [11 * stopsize, '#3985AC'],
+                [12 * stopsize, '#106496'],
+                [13 * stopsize, '#014683'],
+                [14 * stopsize, '#012C72'],
+                [1, '#001260']];
             }
         }
 
