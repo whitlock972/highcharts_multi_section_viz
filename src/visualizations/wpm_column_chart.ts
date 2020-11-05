@@ -235,20 +235,66 @@ const vis: CustomColumnViz = {
             display: "color",
             order: 7
         };
-        options["customSeriesColor"] =
+        options["customSeriesColors"] =
         {
             section: "Colors",
             type: "boolean",
-            label: "Custom Series Color",
+            label: "Custom Colors",
             order: 1
         };
-        options["seriesColor"] =
+        options["baselineColor"] =
         {
             section: "Colors",
             type: "array",
-            label: "Custom Series Color",
+            label: "Custom Baseline Color",
             display: "color",
+            default: "#2B333F",
             order: 2
+        };
+        options["baselineLabelColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom Baseline Label Color",
+            display: "color",
+            default: "#FFFFFF",
+            order: 3
+        };
+        options["firstRPColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom First RP Color",
+            display: "color",
+            default: "#2B333F",
+            order: 4
+        };
+        options["firstRPLabelColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom First RP Label Color",
+            display: "color",
+            default: "#FFFFFF",
+            order: 5
+        };
+        options["secondRPColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom Second RP Color",
+            display: "color",
+            default: "#2B333F",
+            order: 6
+        };
+        options["secondRPLabelColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom Second RP Label Color",
+            display: "color",
+            default: "#FFFFFF",
+            order: 7
         };
 
         this.trigger('registerOptions', options); // register options with parent page to update visConfig
@@ -274,16 +320,20 @@ const vis: CustomColumnViz = {
 
         data.forEach(function (row, i) {        
             const baseline: number = rounder(row[config.baselineMeasure].value,config.decimalPrecision);
-            const benchmark: number = rounder(row[config.benchmarkMeasurerounder].value,config.decimalPrecision);
-            const reflectionPoint1: number = rounder(row[config.reflectionPoint1Measure].value,config.decimalPrecision);
-            const reflectionPoint2: number = rounder(row[config.reflectionPoint2Measure].value,config.decimalPrecision);
+            const benchmark: number = rounder(row[config.benchmarkMeasure].value,config.decimalPrecision);
+            const reflectionPoint1: number = showRP1 ? rounder(row[config.reflectionPoint1Measure].value,config.decimalPrecision) : 0;
+            const reflectionPoint2: number = showRP2 ? rounder(row[config.reflectionPoint2Measure].value,config.decimalPrecision) : 0;
             const firstCategory: string = row[config.firstCategory].value;
             const domain: string = row[config.domain].value;
             const secondCategory: string = row[config.secondCategory].value;
 
             let baselineColor: string;
             let baselineLabelColor: string;
-            if (showRP1 || showRP2) {
+            if (config.customSeriesColors) {
+                baselineColor = config.baselineColor[0];
+                baselineLabelColor = config.baselineLabelColor[0];
+            }
+            else if (showRP1 || showRP2) {
                 baselineColor = "#98a4b7";
                 baselineLabelColor = "#FFFFFF";
             }
@@ -294,7 +344,11 @@ const vis: CustomColumnViz = {
 
             let firstRPColor: string;
             let firstRPLabelColor: string;
-            if (showRP2) {
+            if (config.customSeriesColors) {
+                firstRPColor = config.firstRPColor[0];
+                firstRPLabelColor = config.firstRPLabelColor[0];
+            }
+            else if (showRP2) {
                 firstRPColor = lookupSecondaryColor(domain);
                 firstRPLabelColor = lookupLabelColor(domain, true, true);
             }
@@ -303,8 +357,16 @@ const vis: CustomColumnViz = {
                 firstRPLabelColor = lookupLabelColor(domain, true, false);
             }
 
-            let secondRPColor: string = lookupColor(domain);
-            let secondRPLableColor: string = lookupLabelColor(domain, false, true);
+            let secondRPColor: string;
+            let secondRPLabelColor: string;
+            if (config.customSeriesColors) {
+                secondRPColor = config.secondRPColor[0];
+                secondRPLabelColor = config.secondRPLabelColor[0];
+            }
+            else {
+                secondRPColor = lookupColor(domain);
+                secondRPLabelColor = lookupLabelColor(domain, false, true);
+            }
 
             xCategories.push(secondCategory);
 
@@ -332,7 +394,7 @@ const vis: CustomColumnViz = {
                 reflectionPoint2SeriesValues.push(
                     { x: i, y: reflectionPoint2
                         , color: secondRPColor
-                        , dataLabels: {color: secondRPLableColor}
+                        , dataLabels: {color: secondRPLabelColor}
                     }
                 );
             }
