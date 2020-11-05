@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - github-action-deploy-aws
+      - webpack-github
 jobs:
   deploy:
     runs-on: ubuntu-latest
