@@ -176,6 +176,24 @@ const vis: CustomColumnViz = {
             values: measures_blank,
             order: 5
         };
+        options["changeMeasure"] =
+        {
+            section: "Y-Axis",
+            type: "string",
+            label: "Change (Optional)",
+            display: "select",
+            values: measures_blank,
+            order: 6
+        };
+        options["changeLocation"] =
+        {
+            section: "Y-Axis",
+            type: "string",
+            label: "Change Label Y value (Optional)",
+            placeholder: "70",
+            default: "70",
+            order: 7
+        };
         options["border"] =
         {
             section: "Labels",
@@ -313,16 +331,20 @@ const vis: CustomColumnViz = {
         let benchmarkSeriesValues: Array<any> = [];
         let reflectionPoint1SeriesValues: Array<any> = [];
         let reflectionPoint2SeriesValues: Array<any> = [];
+        let changeSeriesValues: Array<any> = [];
         let primaryLabelClasses: Array<string> = [];
        
-        let showRP1:boolean = config.reflectionPoint1Measure && config.reflectionPoint1Measure.length > 0;
-        let showRP2:boolean = config.reflectionPoint2Measure && config.reflectionPoint2Measure.length > 0;
+        const showRP1:boolean = config.reflectionPoint1Measure && config.reflectionPoint1Measure.length > 0;
+        const showRP2:boolean = config.reflectionPoint2Measure && config.reflectionPoint2Measure.length > 0;
+        const showChange:boolean = config.changeMeasure && config.changeMeasure.length > 0;
+        const changeLocation: number = parseInt(config.changeLocation);
 
         data.forEach(function (row, i) {        
             const baseline: number = rounder(row[config.baselineMeasure].value,config.decimalPrecision);
             const benchmark: number = rounder(row[config.benchmarkMeasure].value,config.decimalPrecision);
             const reflectionPoint1: number = showRP1 ? rounder(row[config.reflectionPoint1Measure].value,config.decimalPrecision) : 0;
             const reflectionPoint2: number = showRP2 ? rounder(row[config.reflectionPoint2Measure].value,config.decimalPrecision) : 0;
+            const change: number = showChange ? rounder(row[config.changeMeasure].value,config.decimalPrecision) : 0;
             const firstCategory: string = row[config.firstCategory].value;
             const domain: string = row[config.domain].value;
             const secondCategory: string = row[config.secondCategory].value;
@@ -397,6 +419,14 @@ const vis: CustomColumnViz = {
                         , dataLabels: {color: secondRPLabelColor}
                     }
                 );
+            }
+
+            if (showChange) {
+                changeSeriesValues.push(
+                    { x: i, y: changeLocation
+                        , name: change
+                    }
+                )
             }
 
             primaryLabelClasses.push(firstCategory.replace(/\s/g, '_'));
@@ -478,6 +508,36 @@ const vis: CustomColumnViz = {
                 }
             };
         }
+
+        let changeSeries: any = {};
+
+        if (showChange) {
+            changeSeries.name = 'Percent Change';
+            changeSeries.data = changeSeriesValues;
+            changeSeries.dataLabels = {
+                enabled: true,
+                format: '{point.name}%',
+                color: "#3E4857",
+                shape: 'square',
+                backgroundColor: '#ffffff',
+                borderColor: '#3E4857',
+                borderWidth: 1
+            };
+            changeSeries.marker = {
+                enabled: false
+            };
+            changeSeries.states = {
+                hover: {
+                    enabled: false
+                }
+            };
+            changeSeries.tooltip = {
+                pointFormat: "{point.name}%",
+                enabled: false
+            };
+            changeSeries.showInLegend = false;
+            changeSeries.type = "scatter";
+        }
        
 
         chartOptions = baseChartOptions;
@@ -488,6 +548,9 @@ const vis: CustomColumnViz = {
             chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries];
         } else {
             chartOptions.series = [baselineSeries, benchmarkSeries];
+        }
+        if (showChange) {
+            chartOptions.series = [baselineSeries, reflectionPoint1Series, benchmarkSeries, changeSeries];
         }
         var vizDiv = document.createElement('div');
         vizDiv.setAttribute('id','viz');
