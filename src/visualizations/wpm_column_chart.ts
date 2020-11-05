@@ -344,7 +344,8 @@ const vis: CustomColumnViz = {
             const benchmark: number = rounder(row[config.benchmarkMeasure].value,config.decimalPrecision);
             const reflectionPoint1: number = showRP1 ? rounder(row[config.reflectionPoint1Measure].value,config.decimalPrecision) : 0;
             const reflectionPoint2: number = showRP2 ? rounder(row[config.reflectionPoint2Measure].value,config.decimalPrecision) : 0;
-            const change: number = showChange ? rounder(row[config.changeMeasure].value,config.decimalPrecision) : 0;
+            const changeRaw: number = showChange ? rounder(row[config.changeMeasure].value,config.decimalPrecision) : 0;
+            const change: string = changeRaw > 0 ? `+${changeRaw}%` : `${changeRaw}%`;
             const firstCategory: string = row[config.firstCategory].value;
             const domain: string = row[config.domain].value;
             const secondCategory: string = row[config.secondCategory].value;
@@ -516,11 +517,11 @@ const vis: CustomColumnViz = {
             changeSeries.data = changeSeriesValues;
             changeSeries.dataLabels = {
                 enabled: true,
-                format: '{point.name}%',
-                color: "#3E4857",
+                format: '{point.name}',
+                color: "#09478F",
                 shape: 'square',
                 backgroundColor: '#ffffff',
-                borderColor: '#3E4857',
+                borderColor: '#09478F',
                 borderWidth: 1
             };
             changeSeries.marker = {
