@@ -235,6 +235,21 @@ const vis: CustomColumnViz = {
             display: "color",
             order: 7
         };
+        options["customSeriesColor"] =
+        {
+            section: "Colors",
+            type: "boolean",
+            label: "Custom Series Color",
+            order: 1
+        };
+        options["seriesColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Custom Series Color",
+            display: "color",
+            order: 2
+        };
 
         this.trigger('registerOptions', options); // register options with parent page to update visConfig
 
@@ -258,56 +273,71 @@ const vis: CustomColumnViz = {
         let showRP2:boolean = config.reflectionPoint2Measure && config.reflectionPoint2Measure.length > 0;
 
         data.forEach(function (row, i) {        
-            var baselineMeasureCell = row[config.baselineMeasure];
-            var benchmarkMeasureCell = row[config.benchmarkMeasure];
-            var firstCategoryCell = row[config.firstCategory];
-            var domainCell = row[config.domain];
-            var secondCategoryCell = row[config.secondCategory];
-            var color = showRP2 ? lookupSecondaryColor(domainCell.value) : lookupColor(domainCell.value); 
-            var secondRPcolor = lookupColor(domainCell.value);
-            xCategories.push(
-                secondCategoryCell.value
-            );
+            const baseline: number = rounder(row[config.baselineMeasure].value,config.decimalPrecision);
+            const benchmark: number = rounder(row[config.benchmarkMeasurerounder].value,config.decimalPrecision);
+            const reflectionPoint1: number = rounder(row[config.reflectionPoint1Measure].value,config.decimalPrecision);
+            const reflectionPoint2: number = rounder(row[config.reflectionPoint2Measure].value,config.decimalPrecision);
+            const firstCategory: string = row[config.firstCategory].value;
+            const domain: string = row[config.domain].value;
+            const secondCategory: string = row[config.secondCategory].value;
 
+            let baselineColor: string;
+            let baselineLabelColor: string;
             if (showRP1 || showRP2) {
-                baselineSeriesValues.push(
-                    {x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
-                        , color: "#98a4b7"
-                        , dataLabels: {color: "#FFFFFF"}}
-                );
+                baselineColor = "#98a4b7";
+                baselineLabelColor = "#FFFFFF";
             }
             else {
-                baselineSeriesValues.push(
-                    { x: i, y: rounder(baselineMeasureCell.value,config.decimalPrecision)
-                        , color: color
-                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
-                    }
-                );
+                baselineColor = lookupColor(domain);
+                baselineLabelColor = lookupLabelColor(domain, true, false);
             }
+
+            let firstRPColor: string;
+            let firstRPLabelColor: string;
+            if (showRP2) {
+                firstRPColor = lookupSecondaryColor(domain);
+                firstRPLabelColor = lookupLabelColor(domain, true, true);
+            }
+            else {
+                firstRPColor = lookupColor(domain);
+                firstRPLabelColor = lookupLabelColor(domain, true, false);
+            }
+
+            let secondRPColor: string = lookupColor(domain);
+            let secondRPLableColor: string = lookupLabelColor(domain, false, true);
+
+            xCategories.push(secondCategory);
+
+            baselineSeriesValues.push(
+                { x: i, y: baseline
+                    , color: baselineColor
+                    , dataLabels: {color: baselineLabelColor}
+                }
+            );
 
             benchmarkSeriesValues.push(
-                [i, rounder(benchmarkMeasureCell.value,config.decimalPrecision)]
+                [i, rounder(benchmark,config.decimalPrecision)]
             );
+
             if (showRP1) {
-                var reflectionPoint1Cell = row[config.reflectionPoint1Measure];
                 reflectionPoint1SeriesValues.push(
-                    { x: i, y: rounder(reflectionPoint1Cell.value,config.decimalPrecision)
-                        , color: color
-                        , dataLabels: {color: lookupLabelColor(domainCell.value, true, showRP2)}
-                    }
-                );
-            }
-            if (showRP2) {
-                var reflectionPoint2Cell = row[config.reflectionPoint2Measure];
-                reflectionPoint2SeriesValues.push(
-                    { x: i, y: rounder(reflectionPoint2Cell.value,config.decimalPrecision)
-                        , color: secondRPcolor
-                        , dataLabels: {color: lookupLabelColor(domainCell.value, false, showRP2)}
+                    { x: i, y: reflectionPoint1
+                        , color: firstRPColor
+                        , dataLabels: {color: firstRPLabelColor}
                     }
                 );
             }
 
-            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'));
+            if (showRP2) {
+                reflectionPoint2SeriesValues.push(
+                    { x: i, y: reflectionPoint2
+                        , color: secondRPColor
+                        , dataLabels: {color: secondRPLableColor}
+                    }
+                );
+            }
+
+            primaryLabelClasses.push(firstCategory.replace(/\s/g, '_'));
         });
 
         let baselineSeries : any = {};
