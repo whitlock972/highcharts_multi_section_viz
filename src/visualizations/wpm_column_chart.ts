@@ -213,19 +213,19 @@ const vis: CustomColumnViz = {
         options["groupLabelFontSize"] =
         {
             section: "Labels",
-            type: "string",
+            type: "number",
             label: "Group Label Font Size",
-            placeholder: "20px",
-            default: "20px",
+            placeholder: "20",
+            default: "20",
             order: 3
         };
         options["labelFontSize"] =
         {
             section: "Labels",
-            type: "string",
+            type: "number",
             label: "Label Font Size",
-            placeholder: "12px",
-            default: "12px",
+            placeholder: "12",
+            default: "12",
             order: 4
         };
         options["decimalPrecision"] =
@@ -324,7 +324,7 @@ const vis: CustomColumnViz = {
 
         chartOptions.title = config.title;
         chartOptions.subtitle = config.subtitle;
-        chartOptions.xAxis.labels.style.fontSize = config.labelFontSize;
+        chartOptions.xAxis.labels.style.fontSize = `${config.labelFontSize}px`;
 
         let xCategories: Array<string> = [];
         let baselineSeriesValues: Array<any> = [];
@@ -585,7 +585,7 @@ const vis: CustomColumnViz = {
             styles += `#${className} {
                 width: ${width}px;
                 text-align: center;
-                font-size: ${config.groupLabelFontSize};
+                font-size: ${config.groupLabelFontSize}px;
                 position: inherit;
                 border: ${borderStyle};
                 border-radius: 4px;

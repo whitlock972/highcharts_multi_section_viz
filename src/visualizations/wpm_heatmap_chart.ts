@@ -121,15 +121,60 @@ const vis: CustomColumnViz = {
             section: "Axes",
             type: "number",
             display: "number",
-            label: "Height (as a % of width)"
+            label: "Height (in pixels)",
+            default: 500,
+            placeholder: 500,
+            order: 1
         };
-        options["firstCategory"] =
+        options["maxWidth"] =
         {
-            section: "Values",
-            type: "string",
-            label: "X-Axis category dimension",
-            display: "select",
-            values: dimensions
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Width (in pixels)",
+            default: 1000,
+            placeholder: 500,
+            order: 2
+        };
+        options["reverseXY"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Reverse X and Y Axes",
+            order: 3
+        };
+        options["xAxisOnTop"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Show X Axis on Top",
+            default: "true",
+            order: 4
+        };
+        options["xAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "X Axis Font Size",
+            default: "12",
+            order: 5
+        };
+        options["yAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Y Axis Font Size",
+            default: "12",
+            order: 6
+        };
+        options["xAxisRotation"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "X Axis Rotation",
+            order: 7
         };
         options["secondCategory"] =
         {
@@ -138,6 +183,32 @@ const vis: CustomColumnViz = {
             label: "X-Axis label dimension",
             display: "select",
             values: dimensions,
+            order: 1
+        };
+        options["minValue"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Minimum Value",
+            default: 30,
+            order: 2
+        };
+        options["maxValue"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Maximum Value",
+            default: 70,
+            order: 3
+        };
+        options["showCellLabels"] =
+        {
+            section: "Values",
+            type: "boolean",
+            label: "Show Cell Labels",
+            order: 4
         };
         options["decimalPrecision"] =
         {
@@ -145,79 +216,15 @@ const vis: CustomColumnViz = {
             type: "number",
             display: "number",
             label: "Decimal Precision",
-            default: 0
-        };
-        options["xAxisFontSize"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "X Axis Font Size",
-            default: "8"
-        };
-        options["reverseXY"] =
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "Reverse X and Y Axes"
-        };
-        options["xAxisOnTop"] =
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "Show X Axis on Top",
-            default: "true"
-        };
-        options["yAxisFontSize"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "Y Axis Font Size",
-            default: "12"
-        };
-        options["xAxisRotation"] =
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "X Axis Rotation"
-        };
-        options["maxWidth"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "Maximum Width (in pixels)"
+            default: 0,
+            order: 5
         };
         options["internalBorder"] =
         {
             section: "Colors",
             type: "boolean",
-            label: "Border Between Cells"
-        };
-        options["minColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Minimum Value Color",
-            display: "color",
-            default: "#263279"
-        };
-        options["midColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Median Value Color",
-            display: "color",
-            default: "#D9DDDE"
-        };
-        options["maxColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Maximum Value Color",
-            display: "color",
-            default: "#670D23"
+            label: "Border Between Cells",
+            order: 1
         };
         options['colorScheme'] =
         {
@@ -234,40 +241,44 @@ const vis: CustomColumnViz = {
                 { "Vik": "Vik" },
                 { "Custom": "Custom" }
             ],
-            default: "Derek"
+            default: "Derek",
+            order: 2
         };
-        options["minValue"] =
+        options["minColor"] =
         {
-            section: "Values",
-            type: "number",
-            display: "number",
-            label: "Minimum Value",
-            default: 30
+            section: "Colors",
+            type: "array",
+            label: "Minimum Value Color",
+            display: "color",
+            default: "#263279",
+            order: 3
         };
-        options["maxValue"] =
+        options["midColor"] =
         {
-            section: "Values",
-            type: "number",
-            display: "number",
-            label: "Maximum Value",
-            default: 70
+            section: "Colors",
+            type: "array",
+            label: "Median Value Color",
+            display: "color",
+            default: "#D9DDDE",
+            order: 4
         };
-        options["showCellLabels"] =
+        options["maxColor"] =
         {
-            section: "Values",
-            type: "boolean",
-            label: "Show Cell Labels"
+            section: "Colors",
+            type: "array",
+            label: "Maximum Value Color",
+            display: "color",
+            default: "#670D23",
+            order: 5
         };
 
         this.trigger('registerOptions', options); // register options with parent page to update visConfig
 
         let xCategories: Array<string> = [];
         let seriesData: Array<any> = [];
-        let primaryLabelClasses: Array<string> = [];
         let yCategories: Array<string> = Object.keys(data[0][measuresName]).map(x => getFinalSectionOfPipedString(x));
 
         data.forEach(function (row, i) {
-            var firstCategoryCell = row[config.firstCategory];
             var secondCategoryCell = row[config.secondCategory];
             var values = Object.values(data[i][measuresName]);
 
@@ -282,7 +293,6 @@ const vis: CustomColumnViz = {
             xCategories.push(
                 secondCategoryCell.value
             );
-            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'));
         });
 
         let pivotedSeries: any = {};
@@ -295,17 +305,24 @@ const vis: CustomColumnViz = {
                 enabled: true,
                 style: {
                     textOutline: 'none'
-                }
+                },
+                shape: 'circle',
+                backgroundColor: '#FFFFFFAA',
+                padding: 5,
+                color: '#3E4857'
             };
         }
 
         //    These are the Highcharts options (not the looker viz config options)
         chartOptions = baseChartOptions;
 
-        if (config.maxWidth && config.maxWidth > 0) element.style.width = `${config.maxWidth}px`;
-        if (config.maxHeight && config.maxHeight > 0) {
-            chartOptions.chart.height = `${config.maxHeight}%`;
+        if (config.maxWidth && config.maxWidth > 0) {
+            element.style.width = `${config.maxWidth}px`;
         }
+        if (config.maxHeight && config.maxHeight > 0) {
+            chartOptions.chart.height = `${config.maxHeight}px`;
+        }
+
         chartOptions.xAxis.opposite = config.xAxisOnTop;
 
         if (config.reverseXY) {
@@ -315,6 +332,7 @@ const vis: CustomColumnViz = {
             chartOptions.xAxis.categories = xCategories;
             chartOptions.yAxis.categories = yCategories;
         }
+
         chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px`;
         chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`;
 
