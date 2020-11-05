@@ -11,10 +11,9 @@ chartOptions = {
     chart: {
         type: 'heatmap',
         marginTop: 40,
-        marginBottom: 80,
+        marginBottom: 40,
         plotBorderWidth: 0,
-        plotBorderColor: 'white',
-        height: '100%'
+        plotBorderColor: '#ffffff'
     },
     credits: {
         enabled: false
@@ -48,8 +47,8 @@ chartOptions = {
         align: 'right',
         layout: 'vertical',
         margin: 10,
-        verticalAlign: 'top',
         y: 25,
+        verticalAlign: 'top',
         symbolHeight: 280
     },
     series: [
@@ -323,8 +322,6 @@ const vis: CustomColumnViz = {
             chartOptions.chart.height = `${config.maxHeight}px`;
         }
 
-        chartOptions.xAxis.opposite = config.xAxisOnTop;
-
         if (config.reverseXY) {
             chartOptions.xAxis.categories = yCategories;
             chartOptions.yAxis.categories = xCategories;
@@ -336,10 +333,39 @@ const vis: CustomColumnViz = {
         chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px`;
         chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`;
 
-        if (config.xAxisRotation) {
+        chartOptions.legend.symbolHeight = config.maxHeight - 200;
+
+        if (config.xAxisOnTop && config.xAxisRotation) {
+            chartOptions.xAxis.opposite = config.xAxisOnTop;
             chartOptions.xAxis.labels.rotation = -90;
-        } else {
+            chartOptions.chart.marginTop = 200;
+            chartOptions.chart.marginBottom = 0;
+            chartOptions.chart.height = `${config.maxHeight + 200}px`;
+            chartOptions.legend.y = 182;
+        }
+        else if (config.xAxisRotation) {
+            delete chartOptions.xAxis.opposite;
+            chartOptions.xAxis.labels.rotation = -90;
+            chartOptions.chart.marginTop = 0;
+            chartOptions.chart.marginBottom = 200;
+            chartOptions.chart.height = `${config.maxHeight + 200}px`;
+            chartOptions.legend.y = -10;
+        }
+        else if (config.xAxisOnTop) {
+            chartOptions.xAxis.opposite = config.xAxisOnTop;
             delete chartOptions.xAxis.labels.rotation;
+            chartOptions.chart.marginTop = 40;
+            chartOptions.chart.marginBottom = 0;
+            chartOptions.chart.height = `${config.maxHeight}px`;
+            chartOptions.legend.y = 25;
+        }
+        else {
+            delete chartOptions.xAxis.labels.rotation;
+            delete chartOptions.xAxis.opposite;
+            chartOptions.chart.marginTop = 0;
+            chartOptions.chart.marginBottom = 40;
+            chartOptions.chart.height = `${config.maxHeight}px`;
+            chartOptions.legend.y = -10;
         }
 
         let colorAxis: any = {
