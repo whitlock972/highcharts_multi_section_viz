@@ -92,6 +92,9 @@ const vis: CustomColumnViz = {
             let value = field.name;
             return { [key]: value };
         });
+        queryResponse.fields.table_calculations.forEach(element => {
+            measures.push({[element.label]: element.name})
+        });
         let measures_blank = [...measures];
         let blank = "";
         measures_blank.push({[blank]: blank});
