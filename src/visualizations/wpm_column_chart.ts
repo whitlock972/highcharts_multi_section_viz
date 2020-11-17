@@ -233,6 +233,12 @@ const vis: CustomColumnViz = {
             display: "color",
             order: 7
         };
+        options["showLowerLabels"] =
+        {
+            section: "Labels",
+            type: "boolean",
+            label: "Show Lower Labels"
+        }
 
         this.trigger('registerOptions', options); // register options with parent page to update visConfig
 
@@ -401,15 +407,16 @@ const vis: CustomColumnViz = {
         let vizDivRef = document.getElementById('viz')
         Highcharts.chart(vizDivRef, chartOptions);
 
-        // Highcharts is all done, now the custom label boxes!
+        // Highcharts is all done, now the custom label boxes (and a little styling)!
+        let styles: string = '';
 
+    if(config.showLowerLabels) {
         let labelDivs: Array<Element> = []; 
 
         let uniquePrimaryLabelClasses: Array<string> = [...new Set(primaryLabelClasses)]; 
         let leftMargin: number = 100;
         let widthIncrement = (totalWidth - leftMargin)/numberOfClasses; 
-        let styles: string = '';
-
+        
         uniquePrimaryLabelClasses.forEach( (className:string, i: number) => {
             let numberOfElements: number = primaryLabelClasses.filter(x => x==className).length;
             let width = widthIncrement*numberOfElements;
@@ -439,7 +446,13 @@ const vis: CustomColumnViz = {
             `;
             labelDivs.push(newLabelElement);
         })
-        
+    
+        var customLabelsDiv: Element = document.createElement('div');
+        customLabelsDiv.setAttribute('class', 'customLabels');
+        customLabelsDiv.setAttribute('style',"display: flex");
+        labelDivs.forEach(x => customLabelsDiv.appendChild(x));
+        element.appendChild(customLabelsDiv);
+    }
         var styleEl = document.createElement('style');
         styleEl.setAttribute('type',"text/css");
         styles +=  `
@@ -451,12 +464,6 @@ const vis: CustomColumnViz = {
         styleEl.innerHTML = styles;
         document.head.appendChild(styleEl);
 
-        var customLabelsDiv: Element = document.createElement('div');
-        customLabelsDiv.setAttribute('class', 'customLabels');
-        customLabelsDiv.setAttribute('style',"display: flex");
-        labelDivs.forEach(x => customLabelsDiv.appendChild(x));
-        element.appendChild(customLabelsDiv);
-       
         done();
     }
     
