@@ -1,33 +1,26 @@
-import { Looker, VisualizationDefinition, LookerChartUtils } from '../common/types'
-import { handleErrors, formatType } from '../common/utils'
+import { Looker, VisualizationDefinition } from '../common/types';
+import { handleErrors, rounder } from '../common/utils';
 
-// import * as Highcharts1 from 'highcharts'
-
-var Highcharts = require('highcharts');  
+import * as Highcharts from 'highcharts';
 // Load module after Highcharts is loaded
 require('highcharts/modules/heatmap')(Highcharts);
 
-import { stockChart }  from 'highcharts/highstock'
-import { Chart, Options, charts, XAxisOptions, SeriesOptionsType, SeriesColumnOptions } from 'highcharts'
-
-declare var looker: Looker
-let chart: Chart
-let chartOptions: any
+declare var looker: Looker;
+let chartOptions: any;
 chartOptions = {
     chart: {
         type: 'heatmap',
         marginTop: 40,
-        marginBottom: 80,
+        marginBottom: 40,
         plotBorderWidth: 0,
-        plotBorderColor: 'white',
-        height: '100%'
-      },
+        plotBorderColor: '#ffffff'
+    },
     credits: {
         enabled: false
     },
     title: {
-        floating:true,
-        text:''
+        floating: true,
+        text: ''
     },
     xAxis: {
         categories: [],
@@ -50,20 +43,14 @@ chartOptions = {
             }
         }
     },
-    colorAxis: {
-        min: 30,
-        max: 70,
-        stops: [[0,'#263279'],[0.5,'#D9DDDE'],[1,'#670D23']],    
-        reversed: false
-    },
     legend: {
         align: 'right',
         layout: 'vertical',
         margin: 10,
-        verticalAlign: 'top',
         y: 25,
+        verticalAlign: 'top',
         symbolHeight: 280
-      },
+    },
     series: [
     ],
     plotOptions: {
@@ -84,13 +71,11 @@ chartOptions = {
             if (this.point.isNull) {
                 return 'Null';
             }
-            return this.point.value
-            // If not null, use the default formatter
-            return tooltip.defaultFormatter.call(this, tooltip);
+            return this.point.value;
         }
     }
-}
-let baseChartOptions = chartOptions
+};
+let baseChartOptions = chartOptions;
 
 interface CustomColumnViz extends VisualizationDefinition {
     elementRef?: HTMLDivElement,
@@ -102,14 +87,14 @@ const vis: CustomColumnViz = {
     options: {},
     // Set up the initial state of the visualization
     create(element, config) {
-        element.innerHTML = "Rendering ..."
+        element.innerHTML = "Rendering ...";
         // chart = Highcharts.stockChart(element, chartOptions)
     },
     // Render in response to the data or settings changing
     async updateAsync(data, element, config, queryResponse, details, done) {
 
-        element.innerHTML = ''
-      
+        element.innerHTML = '';
+
         const errors = handleErrors(this, queryResponse, {
             min_pivots: 1,
             max_pivots: 3,
@@ -117,42 +102,79 @@ const vis: CustomColumnViz = {
             max_dimensions: 4,
             min_measures: 1,
             max_measures: 1
-        })
+        });
 
-        let measuresName = queryResponse.fields.measure_like[0].name
+        let measuresName = queryResponse.fields.measure_like[0].name;
 
         let dimensions = queryResponse.fields.dimension_like.map((field) => {
-            let key = field.label
-            let value = field.name
-            return { [key]: value }
-        })
+            let key = field.label;
+            let value = field.name;
+            return { [key]: value };
+        });
 
         // These are the looker viz options. 
-        let options = this.options
+        let options = this.options;
 
-        options["domain"] =
-        {
-            section: "Lower Labels",
-            type: "string",
-            label: "Domain or other dimension",
-            display: "select",
-            values: dimensions
-        }
         options["maxHeight"] =
         {
             section: "Axes",
             type: "number",
             display: "number",
-            label: "Height (as a % of width)"
-        }
-        options["firstCategory"] =
+            label: "Height (in pixels)",
+            default: 500,
+            placeholder: 500,
+            order: 1
+        };
+        options["maxWidth"] =
         {
-            section: "Values",
-            type: "string",
-            label: "X-Axis category dimension",
-            display: "select",
-            values: dimensions
-        }
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Width (in pixels)",
+            default: 1000,
+            placeholder: 500,
+            order: 2
+        };
+        options["reverseXY"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Reverse X and Y Axes",
+            order: 3
+        };
+        options["xAxisOnTop"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "Show X Axis on Top",
+            default: "true",
+            order: 4
+        };
+        options["xAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "X Axis Font Size",
+            default: "12",
+            order: 5
+        };
+        options["yAxisFontSize"] =
+        {
+            section: "Axes",
+            type: "number",
+            display: "number",
+            label: "Y Axis Font Size",
+            default: "12",
+            order: 6
+        };
+        options["xAxisRotation"] =
+        {
+            section: "Axes",
+            type: "boolean",
+            label: "X Axis Rotation",
+            order: 7
+        };
         options["secondCategory"] =
         {
             section: "Values",
@@ -160,367 +182,334 @@ const vis: CustomColumnViz = {
             label: "X-Axis label dimension",
             display: "select",
             values: dimensions,
-        }
-        options["showLowerLabels"] =
-        {
-            section: "Lower Labels",
-            type: "boolean",
-            label: "Show Lower Labels"
-        }
-        options["border"] =
-        {
-            section: "Lower Labels",
-            type: "boolean",
-            label: "Draw border"
-        }
-        options["lowerLabelFontColor"] =
-        {
-            section: "Lower Labels",
-            type: "array",
-            label: "Font Color",
-            display: "color"
-        }
-        options["borderBoxColor"] =
-        {
-            section: "Lower Labels",
-            type: "array",
-            label: "Border Box Color",
-            display: "color"
-        }
-        options["borderFontSize"] =
-        {
-            section: "Lower Labels",
-            type: "string",
-            label: "Font Size",
-            placeholder: "16px",
-            default: "16px"
-        }
-        options["decimalPrecision"] =
-        {
-            section: "Values",
-            type: "number",
-            display: "number",
-            label: "Decimal Precision",
-            default: 0
-        }
-        options["xAxisFontSize"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "X Axis Font Size",
-            default: "8"
-        }
-        options["reverseXY"] = 
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "Reverse X and Y Axes"
-        }
-        options["xAxisOnTop"] =
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "Show X Axis on Top"
-        }
-        options["yAxisFontSize"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "Y Axis Font Size",
-            default: "12"
-        }
-        options["xAxisRotation"] =
-        {
-            section: "Axes",
-            type: "boolean",
-            label: "X Axis Rotation"
-        }
-        options["maxWidth"] =
-        {
-            section: "Axes",
-            type: "number",
-            display: "number",
-            label: "Maximum Width (in pixels)"
-        }
-        options["internalBorder"] =
-        {
-            section: "Colors",
-            type: "boolean",
-            label: "Border Between Cells"
-        }
-        options["minColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Minimum Value Color",
-            display: "color",
-            default: "#263279"
-        }
-       
-        options["midColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Median Value Color",
-            display: "color",
-            default: "#D9DDDE"
-        }
-        options["maxColor"] =
-        {
-            section: "Colors",
-            type: "array",
-            label: "Maximum Value Color",
-            display: "color",
-            default: "#670D23"
-        }
+            order: 1
+        };
         options["minValue"] =
         {
             section: "Values",
             type: "number",
             display: "number",
             label: "Minimum Value",
-            default: 30
-        }
+            default: 30,
+            order: 2
+        };
         options["maxValue"] =
         {
             section: "Values",
             type: "number",
             display: "number",
             label: "Maximum Value",
-            default: 70
-        }
-        options["showCellLabels"] = 
+            default: 70,
+            order: 3
+        };
+        options["showCellLabels"] =
         {
             section: "Values",
             type: "boolean",
-            label: "Show Cell Labels"
-        }
+            label: "Show Cell Labels",
+            order: 4
+        };
+        options["decimalPrecision"] =
+        {
+            section: "Values",
+            type: "number",
+            display: "number",
+            label: "Decimal Precision",
+            default: 0,
+            order: 5
+        };
+        options["internalBorder"] =
+        {
+            section: "Colors",
+            type: "boolean",
+            label: "Border Between Cells",
+            order: 1
+        };
+        options['colorScheme'] =
+        {
+            section: "Colors",
+            type: "string",
+            label: "Color Scheme",
+            display: "select",
+            values: [
+                { "Berlin": "Berlin" },
+                { "Cork": "Cork" },
+                { "Derek": "Derek" },
+                { "Roma": "Roma" },
+                { "Tofino": "Tofino" },
+                { "Vik": "Vik" },
+                { "Custom": "Custom" }
+            ],
+            default: "Derek",
+            order: 2
+        };
+        options["minColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Minimum Value Color",
+            display: "color",
+            default: "#263279",
+            order: 3
+        };
+        options["midColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Median Value Color",
+            display: "color",
+            default: "#D9DDDE",
+            order: 4
+        };
+        options["maxColor"] =
+        {
+            section: "Colors",
+            type: "array",
+            label: "Maximum Value Color",
+            display: "color",
+            default: "#670D23",
+            order: 5
+        };
 
-        this.trigger('registerOptions', options) // register options with parent page to update visConfig
+        this.trigger('registerOptions', options); // register options with parent page to update visConfig
 
-        if (!config.domain) {
-            done()
-            return
-        }
+        let xCategories: Array<string> = [];
+        let seriesData: Array<any> = [];
+        let yCategories: Array<string> = Object.keys(data[0][measuresName]).map(x => getFinalSectionOfPipedString(x));
 
-        let xCategories: Array<string> = []
-        let seriesData: Array<any> = []
-        let primaryLabelClasses: Array<string> = []
-        let yCategories: Array<string> =  Object.keys(data[0][measuresName]).map(x =>getFinalSectionOfPipedString(x))
-        let dataValues: any = Object.values(data[0][measuresName])
+        data.forEach(function (row, i) {
+            var secondCategoryCell = row[config.secondCategory];
+            var values = Object.values(data[i][measuresName]);
 
-        let maxYAxisStringLength: number = Math.max(...yCategories.map(x=>x.length))
-        let totalWidth: number = document.body.clientWidth
-        
-        await data.forEach(function (row, i) {        
-            var firstCategoryCell = row[config.firstCategory]
-            var domainCell = row[config.domain]
-            var secondCategoryCell = row[config.secondCategory]
-            var secondRPcolor = lookupColor(domainCell.value)
-            var values = Object.values(data[i][measuresName])
-            
-            values.map((x:any,j:number)=> {
-            //     element.innerHTML = `i:${i},j:${j}, value: ${JSON.stringify(x)}` + ' ----+------' + JSON.stringify(values) + '--------' + JSON.stringify(data, null, '\n')
-            // return;
+            values.map((x: any, j: number) => {
                 if (config.reverseXY) {
-                    seriesData.push([j,i,rounder(x.value,config.decimalPrecision)])        
+                    seriesData.push([j, i, rounder(x.value, config.decimalPrecision)]);
                 } else {
-                    seriesData.push([i,j,rounder(x.value,config.decimalPrecision)])
+                    seriesData.push([i, j, rounder(x.value, config.decimalPrecision)]);
                 }
-            })
-            
+            });
+
             xCategories.push(
-                secondCategoryCell.value 
-            )
-            primaryLabelClasses.push(firstCategoryCell.value.replace(/\s/g, '_'))
-        })
+                secondCategoryCell.value
+            );
+        });
 
-       
-        
-        let numberOfClasses: number = primaryLabelClasses.length
-        
+        let pivotedSeries: any = {};
+        pivotedSeries.data = seriesData;
+        pivotedSeries.borderWidth = config.internalBorder ? 1 : 0;
+        pivotedSeries.borderColor = 'white';
 
-        let pivotedSeries: any = {}
-            pivotedSeries.data = seriesData 
-            pivotedSeries.borderWidth= config.internalBorder ? 1 : 0
-            pivotedSeries.borderColor= 'white'
-        
         if (config.showCellLabels) {
-            pivotedSeries.dataLabels= {
+            pivotedSeries.dataLabels = {
                 enabled: true,
                 style: {
                     textOutline: 'none'
-                }
-            }
-        }   
-        
-//    These are the Highcharts options (not the looker viz config options)
-        chartOptions = baseChartOptions
+                },
+                shape: 'circle',
+                backgroundColor: '#FFFFFFAA',
+                padding: 5,
+                color: '#3E4857'
+            };
+        }
 
-        if (config.maxWidth && config.maxWidth > 0) element.style.width = `${config.maxWidth}px`; 
+        //    These are the Highcharts options (not the looker viz config options)
+        chartOptions = baseChartOptions;
+
+        if (config.maxWidth && config.maxWidth > 0) {
+            element.style.width = `${config.maxWidth}px`;
+        }
         if (config.maxHeight && config.maxHeight > 0) {
-            chartOptions.chart.height = `${config.maxHeight}%`
-        } 
-        chartOptions.xAxis.opposite = config.xAxisOnTop
+            chartOptions.chart.height = `${config.maxHeight}px`;
+        }
 
         if (config.reverseXY) {
-            chartOptions.xAxis.categories =  yCategories
-            chartOptions.yAxis.categories =  xCategories    
+            chartOptions.xAxis.categories = yCategories;
+            chartOptions.yAxis.categories = xCategories;
         } else {
-            chartOptions.xAxis.categories =  xCategories
-            chartOptions.yAxis.categories =  yCategories    
+            chartOptions.xAxis.categories = xCategories;
+            chartOptions.yAxis.categories = yCategories;
         }
-        chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px` 
-        chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`
-        
-        if (config.xAxisRotation) {
-            chartOptions.xAxis.labels.rotation = -90
-        } else delete chartOptions.xAxis.labels.rotation
 
-        let colorAxis:any = {
-            min: config.minValue || 30,
-            max: config.maxValue || 70,  
-            stops: [
-                [0,`${config.minColor}` || '#263279'],
-                [0.5,`${config.midColor}` || '#D9DDDE'],
-                [1,`${config.maxColor}` || '#670D23']],
+        chartOptions.xAxis.labels.style.fontSize = `${config.xAxisFontSize}px`;
+        chartOptions.yAxis.labels.style.fontSize = `${config.yAxisFontSize}px`;
+
+        chartOptions.legend.symbolHeight = config.maxHeight - 200;
+
+        if (config.xAxisOnTop && config.xAxisRotation) {
+            chartOptions.xAxis.opposite = config.xAxisOnTop;
+            chartOptions.xAxis.labels.rotation = -90;
+            chartOptions.chart.marginTop = 200;
+            chartOptions.chart.marginBottom = 0;
+            chartOptions.chart.height = `${config.maxHeight + 200}px`;
+            chartOptions.legend.y = 182;
+        }
+        else if (config.xAxisRotation) {
+            delete chartOptions.xAxis.opposite;
+            chartOptions.xAxis.labels.rotation = -90;
+            chartOptions.chart.marginTop = 0;
+            chartOptions.chart.marginBottom = 200;
+            chartOptions.chart.height = `${config.maxHeight + 200}px`;
+            chartOptions.legend.y = -10;
+        }
+        else if (config.xAxisOnTop) {
+            chartOptions.xAxis.opposite = config.xAxisOnTop;
+            delete chartOptions.xAxis.labels.rotation;
+            chartOptions.chart.marginTop = 40;
+            chartOptions.chart.marginBottom = 0;
+            chartOptions.chart.height = `${config.maxHeight}px`;
+            chartOptions.legend.y = 25;
+        }
+        else {
+            delete chartOptions.xAxis.labels.rotation;
+            delete chartOptions.xAxis.opposite;
+            chartOptions.chart.marginTop = 0;
+            chartOptions.chart.marginBottom = 40;
+            chartOptions.chart.height = `${config.maxHeight}px`;
+            chartOptions.legend.y = -10;
+        }
+
+        let colorAxis: any = {
+            min: config.minValue || 40,
+            max: config.maxValue || 60,
             reversed: false
-          }
-        
+        };
+        if (config.colorScheme == 'Custom') {
+            colorAxis.stops = [
+                [0, `${config.minColor}` || '#263279'],
+                [0.5, `${config.midColor}` || '#D9DDDE'],
+                [1, `${config.maxColor}` || '#670D23']];
+        }
+        else {
+            const stopsize = 1 / 15;
+            if (config.colorScheme == 'Derek') {
+                colorAxis.stops = [[0, '#3C0912'],
+                [1 * stopsize, '#670D23'],
+                [2 * stopsize, '#931327'],
+                [3 * stopsize, '#B23727'],
+                [4 * stopsize, '#C26245'],
+                [5 * stopsize, '#CF8971'],
+                [6 * stopsize, '#DBB1A3'],
+                [7 * stopsize, '#E8D8D3'],
+                [8 * stopsize, '#D9DDDE'],
+                [9 * stopsize, '#A8C1CB'],
+                [10 * stopsize, '#73A8BD'],
+                [11 * stopsize, '#428EBA'],
+                [12 * stopsize, '#166FBB'],
+                [13 * stopsize, '#1C4BB2'],
+                [14 * stopsize, '#263279'],
+                [1, '#181C43']];
+            }
+            else if (config.colorScheme == 'Roma') {
+                colorAxis.stops = [[0, '#7E1900'],
+                [1 * stopsize, '#924410'],
+                [2 * stopsize, '#A4661E'],
+                [3 * stopsize, '#B48A2C'],
+                [4 * stopsize, '#C5AD40'],
+                [5 * stopsize, '#D9D26A'],
+                [6 * stopsize, '#E5E598'],
+                [7 * stopsize, '#DFECBB'],
+                [8 * stopsize, '#BFEBD2'],
+                [9 * stopsize, '#8CDED9'],
+                [10 * stopsize, '#60C3D4'],
+                [11 * stopsize, '#4CA3C9'],
+                [12 * stopsize, '#3F85BB'],
+                [13 * stopsize, '#3368B0'],
+                [14 * stopsize, '#274DA4'],
+                [1, '#1A3399']];
+            }
+            else if (config.colorScheme == 'Cork') {
+                colorAxis.stops = [[0, '#2C194C'],
+                [1 * stopsize, '#2A3366'],
+                [2 * stopsize, '#2A4E80'],
+                [3 * stopsize, '#3F6C99'],
+                [4 * stopsize, '#658AAD'],
+                [5 * stopsize, '#8CA7C3'],
+                [6 * stopsize, '#B6C6D8'],
+                [7 * stopsize, '#DDE5EB'],
+                [8 * stopsize, '#DFEBE1'],
+                [9 * stopsize, '#BBD8BF'],
+                [10 * stopsize, '#98C39B'],
+                [11 * stopsize, '#73AD79'],
+                [12 * stopsize, '#529754'],
+                [13 * stopsize, '#3F7A33'],
+                [14 * stopsize, '#406119'],
+                [1, '#434C01']];
+            }
+            else if (config.colorScheme == 'Tofino') {
+                colorAxis.stops = [[0, '#DED8FF'],
+                [1 * stopsize, '#B0B8EB'],
+                [2 * stopsize, '#8399D7'],
+                [3 * stopsize, '#5777B9'],
+                [4 * stopsize, '#395790'],
+                [5 * stopsize, '#263B65'],
+                [6 * stopsize, '#19253D'],
+                [7 * stopsize, '#0E141D'],
+                [8 * stopsize, '#0E1B12'],
+                [9 * stopsize, '#183219'],
+                [10 * stopsize, '#244C27'],
+                [11 * stopsize, '#336C38'],
+                [12 * stopsize, '#4A8C4B'],
+                [13 * stopsize, '#76AE66'],
+                [14 * stopsize, '#A9CB80'],
+                [1, '#DAE59A']];
+            }
+            else if (config.colorScheme == 'Berlin') {
+                colorAxis.stops = [[0, '#FFACAC'],
+                [1 * stopsize, '#DA8B84'],
+                [2 * stopsize, '#B86A5B'],
+                [3 * stopsize, '#964A35'],
+                [4 * stopsize, '#722B15'],
+                [5 * stopsize, '#501802'],
+                [6 * stopsize, '#371000'],
+                [7 * stopsize, '#210C01'],
+                [8 * stopsize, '#121214'],
+                [9 * stopsize, '#112632'],
+                [10 * stopsize, '#194155'],
+                [11 * stopsize, '#255F7B'],
+                [12 * stopsize, '#327FA5'],
+                [13 * stopsize, '#4C9DCE'],
+                [14 * stopsize, '#76ABEB'],
+                [1, '#9EB0FF']];
+            }
+            else if (config.colorScheme == 'Vik') {
+                colorAxis.stops = [[0, '#601200'],
+                [1 * stopsize, '#743100'],
+                [2 * stopsize, '#875001'],
+                [3 * stopsize, '#9F711B'],
+                [4 * stopsize, '#B39148'],
+                [5 * stopsize, '#C7AD78'],
+                [6 * stopsize, '#DCCBA7'],
+                [7 * stopsize, '#ECE6D8'],
+                [8 * stopsize, '#D9E6EC'],
+                [9 * stopsize, '#A5C9D9'],
+                [10 * stopsize, '#70A7C3'],
+                [11 * stopsize, '#3985AC'],
+                [12 * stopsize, '#106496'],
+                [13 * stopsize, '#014683'],
+                [14 * stopsize, '#012C72'],
+                [1, '#001260']];
+            }
+        }
+
         chartOptions.colorAxis = colorAxis;
 
-        chartOptions.series = [pivotedSeries]    
-      
-        var vizDiv = document.createElement('div')
-        vizDiv.setAttribute('id','viz')
-        element.appendChild(vizDiv)
-        let vizDivRef = document.getElementById('viz')
-        Highcharts.chart(vizDivRef, chartOptions)
+        chartOptions.series = [pivotedSeries];
 
-        // Highcharts is all done, now the custom label boxes!
+        var vizDiv = document.createElement('div');
+        vizDiv.setAttribute('id', 'viz');
+        element.appendChild(vizDiv);
+        let vizDivRef = document.getElementById('viz');
+        Highcharts.chart(vizDivRef, chartOptions);
 
-        let labelDivs: Array<Element> = [] 
-
-        let uniquePrimaryLabelClasses: Array<string> = [...new Set(primaryLabelClasses)] 
-        let leftMargin: number = maxYAxisStringLength * (config.yAxisFontSize/2) + 27
-        let rightMargin: number = 65
-        let widthIncrement = (totalWidth - leftMargin - rightMargin)/numberOfClasses    
-        let styles: string = ''
-
-        chartOptions.xAxis.labels.width = `${widthIncrement}px`
-
-        uniquePrimaryLabelClasses.forEach( (className:string, i: number) => {
-            let numberOfElements: number = primaryLabelClasses.filter(x => x==className).length
-            let width = widthIncrement*numberOfElements - 10
-            
-            let newLabelElement = document.createElement('div')
-            newLabelElement.setAttribute("id",className)
-            let domainName = getDomainNameFromPrimaryLabel(className,config,data).trim()
-            let labelValue = className.replace('_',' ').trim()
-            if (domainName != labelValue) { labelValue = labelValue.replace(domainName,'').trim() } 
-            newLabelElement.innerHTML = labelValue
-            let borderStyle = config.border ? `2px solid ${config.borderBoxColor}` : 'none'
-            styles += `#${className} {
-                width: ${width}px;
-                text-align: center;
-                font-size: ${config.borderFontSize};
-                position: inherit;
-                border: ${borderStyle};
-                border-radius: 4px;
-                padding: 15px;
-                margin-left:${i==0?`${leftMargin}px`:"10px"};
-                margin-right:${i+1==uniquePrimaryLabelClasses.length?`${rightMargin}px`:""};
-                color:${config.lowerLabelFontColor || lookupColor(domainName)};
-            }
-            `
-            labelDivs.push(newLabelElement)
-        })
-        
-
-        var styleEl = document.createElement('style')
-        styleEl.setAttribute('type',"text/css")
-        styles +=  `
-        @font-face {font-family: "Gilroy"; src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot"); src: url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.eot?#iefix") format("embedded-opentype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff2") format("woff2"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.woff") format("woff"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.ttf") format("truetype"), url("//db.onlinewebfonts.com/t/1dc8ecd8056a5ea7aa7de1db42b5b639.svg#Gilroy") format("svg"); }  
-        div {
-            font-family: "Gilroy", Arial, Helevatica, sans-serif;
-        }
-        `
-        styleEl.innerHTML = styles 
-        document.head.appendChild(styleEl)
-
-        var customLabelsDiv: Element = document.createElement('div')
-        customLabelsDiv.setAttribute('class', 'customLabels')
-        customLabelsDiv.setAttribute('style',"display: flex")
-        labelDivs.forEach(x => customLabelsDiv.appendChild(x))
-        
-        if(config.showLowerLabels && !config.reverseXY) {element.appendChild(customLabelsDiv)}
-       
-        done()
+        done();
     }
-    
 }
 
-function lookupColor(domainName: string): string {
-    let color: string 
-    switch (domainName.trim().toLowerCase()) {
-        case "mindset" : color = "#FFD116"
-        break
-        case "inspiring" : color = "#39A6FF" 
-        break
-        case "thriving" : color = "#FF6A4C"
-        break
-        case "outcome" : color = "#41B2A2"
-        break
-        case "outcomes" : color = "#41B2A2"
-        break
-        default: color = "#2B333F"
-    }
-    return color
+function getFinalSectionOfPipedString(input: string): string {
+    let finalString: string = '';
+    let array: Array<string> = input.split('|');
+    finalString = array[array.length - 1];
+    return finalString;
 }
 
-function lookupSecondaryColor(domainName: string):string {
-    let color: string 
-    switch (domainName.trim().toLowerCase()) {
-        case "mindset" : color = "#FFEEB2"
-        break
-        case "inspiring" : color = "#BBDFFF" 
-        break
-        case "thriving" : color = "#FECCBC"
-        break
-        case "outcome" : color = "#A9DED7"
-        break
-        case "outcomes" : color = "#A9DED7"
-        break
-        default: color = "#FFFFFF"
-    }
-return color
-}
-
-
-
-function rounder(float:number, digits:number): number {
-    let rounded = Math.round(float * 10**digits) / 10**digits
-    return rounded
-}
-
-function getFinalSectionOfPipedString(input:string):string {
-    let finalString:string = ''
-    let array:Array<string> = input.split('|')
-    finalString = array[array.length-1]
-    return finalString
-}
-
-function getDomainNameFromPrimaryLabel(className:string,config:any,data:any):string {
-    let domainName: string = '' 
-    if(config.firstCategory == config.domain) {
-        domainName = className
-    }
-    else {
-        domainName = data[0][config.domain].value
-    }
-    return domainName
-}
-
-looker.plugins.visualizations.add(vis)
+looker.plugins.visualizations.add(vis);
