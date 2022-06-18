@@ -80,6 +80,7 @@ let webpackConfig = {
     },
     devServer: {
         host: 'localhost',
+        mode: 'development',
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': '*',
