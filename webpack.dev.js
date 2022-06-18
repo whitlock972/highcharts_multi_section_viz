@@ -29,9 +29,15 @@ let webpackConfig = {
         ]
     },
     devServer: {
+        host: 'localhost',
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
+        },
+        disableHostCheck: true,
         contentBase: false,
         compress: true,
-        port: 3443,
+        port: 8443,
         https: true
     },
     devtool: 'eval',
