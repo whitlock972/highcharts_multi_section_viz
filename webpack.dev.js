@@ -50,7 +50,7 @@ let path = require('path');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 let webpackConfig = {
-    mode: 'production',
+    mode: 'development',
     entry: {
         wpm_heatmap_chart: './src/visualizations/wpm_heatmap_chart.ts',
         wpm_column_chart: './src/visualizations/wpm_column_chart.ts'
