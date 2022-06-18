@@ -3,7 +3,7 @@ import { handleErrors, rounder } from '../common/utils';
 
 import * as Highcharts from 'highcharts';
 // Load module after Highcharts is loaded
-require('highcharts/modules/heatmap')(Highcharts);
+require ('highcharts/modules/heatmap')(Highcharts);
 
 declare var looker: Looker;
 let chartOptions: any;
